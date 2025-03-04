@@ -1,0 +1,12 @@
+https://github.com/brian-yang/table-parser-opencv/tree/master
+https://habr.com/ru/articles/546824/
+https://www.youtube.com/watch?v=I9hB18UuDnE
+https://habr.com/ru/articles/579050/
+https://workspace.google.com/marketplace/app/table_ocr_%D0%B8%D0%B7%D0%B2%D0%BB%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5_%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D1%85_%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85_%D0%B8%D0%B7/959950861676?hl=ru
+https://vc.ru/services/60100-microsoft-dobavila-v-mobilnoe-prilozhenie-excel-funkciyu-raspoznavaniya-tablic-po-fotografii
+https://github.com/asagar60/TableNet-pytorch
+https://paddlepaddle.github.io/PaddleOCR/latest/en/ppstructure/quick_start.html#223-layout-analysis
+https://huggingface.co/spaces/RapidAI/TableStructureRec
+https://huggingface.co/spaces/RapidAI/RapidLayout
+https://github.com/RapidAI/TableStructureRec/blob/main/README_en.md
+https://huggingface.co/spaces/rizgiak/table-to-csv-pipeline

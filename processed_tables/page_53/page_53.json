@@ -1,0 +1,150 @@
+{
+    "image_path": "./cropped_tables\\page_53.jpg",
+    "total_cells": 13,
+    "cells": [
+        {
+            "index": 18,
+            "coordinates": [
+                273,
+                179,
+                375,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9921789169311523
+        },
+        {
+            "index": 19,
+            "coordinates": [
+                378,
+                179,
+                483,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9973311424255371
+        },
+        {
+            "index": 20,
+            "coordinates": [
+                486,
+                179,
+                590,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9988403916358948
+        },
+        {
+            "index": 21,
+            "coordinates": [
+                594,
+                179,
+                697,
+                286
+            ],
+            "content": 4,
+            "probability": 0.4730664789676666
+        },
+        {
+            "index": 22,
+            "coordinates": [
+                702,
+                179,
+                803,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9986446499824524
+        },
+        {
+            "index": 23,
+            "coordinates": [
+                807,
+                179,
+                911,
+                286
+            ],
+            "content": 0,
+            "probability": 0.9978222846984863
+        },
+        {
+            "index": 24,
+            "coordinates": [
+                915,
+                179,
+                1016,
+                286
+            ],
+            "content": 1,
+            "probability": 0.999359667301178
+        },
+        {
+            "index": 25,
+            "coordinates": [
+                1019,
+                179,
+                1121,
+                286
+            ],
+            "content": 0,
+            "probability": 0.9940646290779114
+        },
+        {
+            "index": 26,
+            "coordinates": [
+                1125,
+                179,
+                1228,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9993370175361633
+        },
+        {
+            "index": 27,
+            "coordinates": [
+                1232,
+                179,
+                1334,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9995347261428833
+        },
+        {
+            "index": 28,
+            "coordinates": [
+                1338,
+                179,
+                1441,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9987130165100098
+        },
+        {
+            "index": 29,
+            "coordinates": [
+                1446,
+                179,
+                1547,
+                286
+            ],
+            "content": 1,
+            "probability": 0.9994747042655945
+        },
+        {
+            "index": 30,
+            "coordinates": [
+                1551,
+                179,
+                1653,
+                286
+            ],
+            "content": 2,
+            "probability": 0.9944530129432678
+        }
+    ],
+    "plot_image_path": "page_53\\table.png"
+}
