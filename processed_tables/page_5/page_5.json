@@ -6,133 +6,133 @@
             "index": 18,
             "coordinates": [
                 275,
-                168,
+                170,
                 483,
                 277
             ],
             "content": 2,
-            "probability": 0.9294171929359436
+            "probability": 0.8777240514755249
         },
         {
             "index": 19,
             "coordinates": [
                 487,
-                170,
+                171,
                 591,
                 277
             ],
             "content": 1,
-            "probability": 0.996830403804779
+            "probability": 0.9873985052108765
         },
         {
             "index": 20,
             "coordinates": [
                 595,
-                171,
+                172,
                 698,
                 278
             ],
             "content": 1,
-            "probability": 0.5683002471923828
+            "probability": 0.6408698558807373
         },
         {
             "index": 21,
             "coordinates": [
                 702,
-                172,
+                171,
                 802,
-                278
+                279
             ],
             "content": 2,
-            "probability": 0.9346354007720947
+            "probability": 0.9293855428695679
         },
         {
             "index": 22,
             "coordinates": [
-                804,
+                805,
                 172,
                 911,
-                279
+                278
             ],
             "content": 1,
-            "probability": 0.993043065071106
+            "probability": 0.9687026143074036
         },
         {
             "index": 23,
             "coordinates": [
-                914,
-                173,
+                915,
+                174,
                 1017,
                 280
             ],
             "content": 1,
-            "probability": 0.9970454573631287
+            "probability": 0.9959701299667358
         },
         {
             "index": 24,
             "coordinates": [
                 1021,
-                173,
+                174,
                 1123,
                 280
             ],
             "content": 1,
-            "probability": 0.9992051720619202
+            "probability": 0.9949178695678711
         },
         {
             "index": 25,
             "coordinates": [
                 1127,
-                174,
+                175,
                 1229,
                 281
             ],
             "content": 2,
-            "probability": 0.9993985891342163
+            "probability": 0.9977315068244934
         },
         {
             "index": 26,
             "coordinates": [
                 1232,
-                175,
+                176,
                 1334,
-                281
+                282
             ],
             "content": 1,
-            "probability": 0.9841464161872864
+            "probability": 0.9858205318450928
         },
         {
             "index": 27,
             "coordinates": [
                 1338,
-                175,
+                176,
                 1442,
                 282
             ],
             "content": 1,
-            "probability": 0.9929214119911194
+            "probability": 0.9785130023956299
         },
         {
             "index": 28,
             "coordinates": [
                 1445,
                 176,
-                1547,
-                283
+                1546,
+                282
             ],
             "content": 1,
-            "probability": 0.9806235432624817
+            "probability": 0.9689545631408691
         },
         {
             "index": 29,
             "coordinates": [
-                1550,
-                177,
+                1551,
+                178,
                 1654,
                 283
             ],
             "content": 1,
-            "probability": 0.9723997712135315
+            "probability": 0.9844058752059937
         }
     ],
     "plot_image_path": "page_5\\table.png"

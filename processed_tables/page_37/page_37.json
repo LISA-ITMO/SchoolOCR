@@ -11,7 +11,7 @@
                 275
             ],
             "content": 1,
-            "probability": 0.9996102452278137
+            "probability": 0.9992865920066833
         },
         {
             "index": 19,
@@ -21,8 +21,8 @@
                 385,
                 275
             ],
-            "content": 1,
-            "probability": 0.8408992290496826
+            "content": 8,
+            "probability": 0.6582062244415283
         },
         {
             "index": 20,
@@ -33,7 +33,7 @@
                 275
             ],
             "content": 1,
-            "probability": 0.9446262717247009
+            "probability": 0.8985063433647156
         },
         {
             "index": 21,
@@ -44,7 +44,7 @@
                 276
             ],
             "content": 1,
-            "probability": 0.6959792971611023
+            "probability": 0.7137238383293152
         },
         {
             "index": 22,
@@ -55,7 +55,7 @@
                 276
             ],
             "content": 2,
-            "probability": 0.6863006949424744
+            "probability": 0.7542626857757568
         },
         {
             "index": 23,
@@ -66,7 +66,7 @@
                 276
             ],
             "content": 1,
-            "probability": 0.9702188372612
+            "probability": 0.9107486605644226
         },
         {
             "index": 24,
@@ -77,7 +77,7 @@
                 275
             ],
             "content": 1,
-            "probability": 0.67542564868927
+            "probability": 0.8138983845710754
         },
         {
             "index": 25,
@@ -88,7 +88,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.9719015955924988
+            "probability": 0.9475827217102051
         },
         {
             "index": 26,
@@ -99,7 +99,7 @@
                 277
             ],
             "content": 0,
-            "probability": 0.9836635589599609
+            "probability": 0.9450775980949402
         },
         {
             "index": 27,
@@ -110,7 +110,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.5644688010215759
+            "probability": 0.5131409764289856
         },
         {
             "index": 28,
@@ -121,7 +121,7 @@
                 276
             ],
             "content": 1,
-            "probability": 0.6475768089294434
+            "probability": 0.8470869660377502
         },
         {
             "index": 29,
@@ -132,7 +132,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.987671971321106
+            "probability": 0.9624660611152649
         },
         {
             "index": 30,
@@ -143,7 +143,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.8099310994148254
+            "probability": 0.7712765336036682
         },
         {
             "index": 31,
@@ -154,7 +154,7 @@
                 277
             ],
             "content": 0,
-            "probability": 0.5692067742347717
+            "probability": 0.937950074672699
         },
         {
             "index": 32,
@@ -165,7 +165,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.9582187533378601
+            "probability": 0.9605332612991333
         },
         {
             "index": 33,
@@ -176,7 +176,7 @@
                 277
             ],
             "content": 1,
-            "probability": 0.9946487545967102
+            "probability": 0.9906340837478638
         },
         {
             "index": 34,
@@ -187,7 +187,7 @@
                 277
             ],
             "content": 2,
-            "probability": 0.9594259262084961
+            "probability": 0.9200412034988403
         },
         {
             "index": 35,
@@ -197,8 +197,8 @@
                 1557,
                 278
             ],
-            "content": 7,
-            "probability": 0.7461206316947937
+            "content": 1,
+            "probability": 0.45748171210289
         },
         {
             "index": 36,
@@ -208,8 +208,8 @@
                 1662,
                 278
             ],
-            "content": 2,
-            "probability": 0.3950636684894562
+            "content": 1,
+            "probability": 0.3661018908023834
         }
     ],
     "plot_image_path": "page_37\\table.png"

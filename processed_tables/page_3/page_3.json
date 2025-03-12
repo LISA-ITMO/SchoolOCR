@@ -5,46 +5,46 @@
         {
             "index": 18,
             "coordinates": [
-                260,
-                161,
+                259,
+                162,
                 363,
                 270
             ],
             "content": 1,
-            "probability": 0.9989759922027588
+            "probability": 0.9912070631980896
         },
         {
             "index": 19,
             "coordinates": [
                 367,
-                163,
-                470,
+                164,
+                471,
                 271
             ],
             "content": 1,
-            "probability": 0.9994596838951111
+            "probability": 0.9985659718513489
         },
         {
             "index": 20,
             "coordinates": [
                 475,
-                164,
-                577,
+                166,
+                578,
                 273
             ],
             "content": 1,
-            "probability": 0.995154857635498
+            "probability": 0.9813473224639893
         },
         {
             "index": 21,
             "coordinates": [
                 582,
-                166,
-                684,
+                167,
+                685,
                 274
             ],
             "content": 0,
-            "probability": 0.9965403079986572
+            "probability": 0.9809373021125793
         },
         {
             "index": 22,
@@ -52,76 +52,76 @@
                 689,
                 167,
                 789,
-                276
+                275
             ],
             "content": 1,
-            "probability": 0.6647282838821411
+            "probability": 0.7867321372032166
         },
         {
             "index": 23,
             "coordinates": [
-                793,
-                169,
-                896,
+                792,
+                170,
+                897,
                 277
             ],
             "content": 7,
-            "probability": 0.8927594423294067
+            "probability": 0.9347473978996277
         },
         {
             "index": 24,
             "coordinates": [
                 901,
-                170,
-                1003,
-                277
+                171,
+                1004,
+                278
             ],
             "content": 1,
-            "probability": 0.9727746248245239
+            "probability": 0.9481955170631409
         },
         {
             "index": 25,
             "coordinates": [
                 1008,
-                172,
-                1109,
-                279
+                171,
+                1110,
+                278
             ],
             "content": 1,
-            "probability": 0.99757319688797
+            "probability": 0.9925341606140137
         },
         {
             "index": 26,
             "coordinates": [
                 1114,
-                173,
-                1216,
-                280
+                174,
+                1217,
+                281
             ],
             "content": 2,
-            "probability": 0.9900346398353577
+            "probability": 0.8981812000274658
         },
         {
             "index": 27,
             "coordinates": [
                 1221,
-                174,
-                1322,
+                175,
+                1323,
                 282
             ],
             "content": 1,
-            "probability": 0.996982753276825
+            "probability": 0.9954439401626587
         },
         {
             "index": 28,
             "coordinates": [
                 1327,
-                176,
-                1428,
+                177,
+                1429,
                 283
             ],
             "content": 2,
-            "probability": 0.9995597004890442
+            "probability": 0.9992332458496094
         },
         {
             "index": 29,
@@ -129,21 +129,21 @@
                 1432,
                 177,
                 1534,
-                285
+                284
             ],
             "content": 1,
-            "probability": 0.9077600836753845
+            "probability": 0.9338410496711731
         },
         {
             "index": 30,
             "coordinates": [
-                1538,
+                1539,
                 179,
-                1641,
+                1642,
                 286
             ],
             "content": 2,
-            "probability": 0.5854873657226562
+            "probability": 0.6813410520553589
         }
     ],
     "plot_image_path": "page_3\\table.png"

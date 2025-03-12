@@ -3,7 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.zip
 *.pdf
+./Сканы титульников/*
+./scans_jpg/*
 
 # C extensions
 *.so
