@@ -33,7 +33,7 @@ def analyze_json(json_file):
 
 
 if __name__ == "__main__":
-    processed_dir = "./processed_tables_v2"
+    processed_dir = "./processed_tables"
 
     stats = []
 

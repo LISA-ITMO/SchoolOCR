@@ -7,7 +7,7 @@
             "coordinates": [
                 272,
                 173,
-                374,
+                373,
                 279
             ],
             "content": 4,
@@ -16,18 +16,18 @@
         {
             "index": 19,
             "coordinates": [
-                378,
+                377,
                 173,
-                481,
+                479,
                 279
             ],
             "content": 4,
-            "probability": 0.5503325462341309
+            "probability": 0.5550557374954224
         },
         {
             "index": 20,
             "coordinates": [
-                485,
+                483,
                 173,
                 588,
                 279
@@ -39,34 +39,34 @@
             "index": 21,
             "coordinates": [
                 592,
-                173,
-                694,
+                174,
+                695,
                 279
             ],
             "content": 0,
-            "probability": 0.9982091188430786
+            "probability": 0.9982548356056213
         },
         {
             "index": 22,
             "coordinates": [
-                696,
-                173,
-                801,
+                697,
+                174,
+                800,
                 279
             ],
             "content": 3,
-            "probability": 0.9999961853027344
+            "probability": 0.9999959468841553
         },
         {
             "index": 23,
             "coordinates": [
-                805,
+                804,
                 174,
-                907,
+                908,
                 279
             ],
             "content": 1,
-            "probability": 0.9983360171318054
+            "probability": 0.9960057139396667
         },
         {
             "index": 24,
@@ -84,8 +84,8 @@
             "coordinates": [
                 1018,
                 174,
-                1120,
-                280
+                1118,
+                279
             ],
             "content": 2,
             "probability": 0.9933229088783264
@@ -93,57 +93,57 @@
         {
             "index": 26,
             "coordinates": [
-                1124,
-                174,
-                1226,
-                280
+                1122,
+                175,
+                1227,
+                279
             ],
             "content": 0,
-            "probability": 0.9996976852416992
+            "probability": 0.9997350573539734
         },
         {
             "index": 27,
             "coordinates": [
-                1230,
-                174,
-                1332,
-                280
+                1231,
+                175,
+                1331,
+                279
             ],
             "content": 0,
-            "probability": 0.9958815574645996
+            "probability": 0.9958491325378418
         },
         {
             "index": 28,
             "coordinates": [
-                1336,
-                174,
-                1439,
-                280
+                1335,
+                175,
+                1436,
+                279
             ],
             "content": 0,
-            "probability": 0.9916231036186218
+            "probability": 0.9946183562278748
         },
         {
             "index": 29,
             "coordinates": [
-                1443,
+                1440,
                 175,
-                1544,
-                280
+                1545,
+                279
             ],
             "content": 1,
-            "probability": 0.997165858745575
+            "probability": 0.997130811214447
         },
         {
             "index": 30,
             "coordinates": [
                 1548,
-                175,
-                1651,
-                280
+                176,
+                1653,
+                279
             ],
             "content": 1,
-            "probability": 0.998498797416687
+            "probability": 0.9976152181625366
         }
     ],
     "plot_image_path": "page_50\\table.png"

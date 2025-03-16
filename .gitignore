@@ -6,7 +6,8 @@ __pycache__/
 *.zip
 *.pdf
 ./Сканы титульников/*
-./scans_jpg/*
+scans_jpg/
+./debug*/
 
 # C extensions
 *.so

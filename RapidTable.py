@@ -4,10 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lineless_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
+from wired_table_rec.utils import ImageOrientationCorrector
+
 from mnist_preprocess_image import preprocess_image
 
 # Путь к изображению таблицы
-IMG_PATH = './cropped_tables/page_5.jpg'
+IMG_PATH = 'help_imgs/Screenshot_4.jpg'
 
 # Загрузка модели MNIST
 model = tf.keras.models.load_model("mnist_model.keras")
@@ -16,24 +18,43 @@ print("Модель успешно загружена.")
 # Инициализация движка для распознавания таблиц
 table_engine = WiredTableRecognition()
 
-# Распознавание таблицы
-html, elasp, polygons, logic_points, ocr_res = table_engine(IMG_PATH, need_ocr=False)
+# Загрузка изображения таблицы
+img = cv2.imread(IMG_PATH)
+# img_orientation_corrector = ImageOrientationCorrector()
+# # Загрузка и коррекция ориентации изображения
+# image = img_orientation_corrector(img)
+if img is None:
+    raise FileNotFoundError(f"Изображение по пути {IMG_PATH} не найдено.")
+print("Изображение успешно загружено.")
+
+# Преобразуем изображение в градации серого
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Применение бинаризации
+_, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
+
+# Морфологические операции для соединения пунктирных линий
+kernel = np.ones((3, 3), np.uint8)  # Размер ядра можно настроить
+dilated = cv2.dilate(binary, kernel, iterations=1)  # Дилатация для соединения линий
+eroded = cv2.erode(dilated, kernel, iterations=1)
+
+# Показываем изображение с контурами
+cv2.imshow("Контуры цифр", gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# Распознавание таблицы на обработанном изображении
+html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
 
 # Визуализация распознанных областей таблицы
 print("Polygons:", polygons)
 print("Logic Points:", logic_points)
 plot_rec_box_with_logic_info(IMG_PATH, "./table_rec_box.jpg", logic_points, polygons)
 
-# Загрузка изображения таблицы
-img = cv2.imread(IMG_PATH)
-if img is None:
-    raise FileNotFoundError(f"Изображение по пути {IMG_PATH} не найдено.")
-print("Изображение успешно загружено.")
-
 # Выделение нужных ячеек (вторая строка)
 second_row_cells = []
 for i, logic in enumerate(logic_points):
-    if logic[0] == 1 and logic[1] == 1:  # Вторая строка
+    if logic[0] == 1 and logic[1] == 1 or logic[0] == 3 and logic[1] == 3:  # Вторая строка
         second_row_cells.append(polygons[i])
 
 # Убираем лишние ячейки (если нужно)

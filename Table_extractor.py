@@ -14,12 +14,22 @@ OUTPUT_DIR = "./processed_tables"
 def table_extraction(img_path, model, output_dir):
     wired_engine = WiredTableRecognition()
     table_engine = wired_engine
-
-    _, _, polygons, logic_points, _ = table_engine(img_path, need_ocr=False)
-
     img = cv2.imread(img_path)
+
+    # Преобразуем изображение в градации серого
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Применение бинаризации
+    _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
+
+    # Морфологические операции для соединения пунктирных линий
+    kernel = np.ones((3, 3), np.uint8)  # Размер ядра можно настроить
+    dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для соединения линий
+
+    _, _, polygons, logic_points, _ = table_engine(dilated, need_ocr=False)
+
     if img is None:
-        print(f"Ошибка: не удалось загрузить изображение {img_path}.")
+        print(f"Ошибка: не удалось загрузить изображение {dilated}.")
         return None
 
     second_row_cells = []
