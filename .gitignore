@@ -7,7 +7,11 @@ __pycache__/
 *.pdf
 ./Сканы титульников/*
 scans_jpg/
-./debug*/
+debug*/
+cropped_code/
+cropped_tables/
+cropped_hat/
+output_images/
 
 # C extensions
 *.so
