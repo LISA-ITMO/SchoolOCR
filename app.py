@@ -1,130 +1,126 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import base64
 import cv2
 import numpy as np
-import json
 import tensorflow as tf
-from wired_table_rec import WiredTableRecognition
-from mnist_preprocess_image import preprocess_image
+import json
+import re
+from difflib import get_close_matches
 import pytesseract
+from services.code_recognition import recognize_code
+from services.table_recognition import recognize_table
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Загрузка конфига и модели
-def load_config(config_path="config.json"):
-    with open(config_path, "r") as f:
-        return json.load(f)
+# Загрузка конфига
+CONFIG_PATH = "config.json"
+with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    config = json.load(f)
 
-config = load_config()
-model = tf.keras.models.load_model("mnist_model.keras")
+# Загрузка моделей MNIST
+mnist_model = tf.keras.models.load_model("mnist_model.keras")  # Стандартная модель
+extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")  # Расширенная модель
 
-# Функция для извлечения региона
+class ImageRequest(BaseModel):
+    image_base64: str
+
+# Извлечение региона из изображения
 def extract_region(image, coords):
     x1, y1, x2, y2 = coords["x1"], coords["y1"], coords["x2"], coords["y2"]
-    region_img = image[y1:y2, x1:x2]
-    return region_img
+    return image[y1:y2, x1:x2]
 
-# Функция для распознавания текста в шапке
+# Распознавание текста из шапки
 def recognize_hat(region_img):
     text = pytesseract.image_to_string(region_img, lang="rus").strip()
-    print(f"Recognized hat text: {text}")
     return text
 
-# Функция для распознавания кода
-def recognize_code(region_img):
-    code = pytesseract.image_to_string(region_img, config="--psm 6").strip()
-    print(f"Recognized code: {code}")
-    return code if code.isdigit() else None
+# Определение предмета и класса из текста шапки
+def parse_hat_text(text):
+    # Регулярное выражение для извлечения предмета, класса и варианта
+    pattern = re.compile(r"ВПР\.\s*([А-Яа-я]+\s*[А-Яа-я]*)\s*\.\s*(\d+)\s*класс\.*\s*Вариант\s*(\d+)", re.IGNORECASE)
+    match = pattern.search(text)
+    if match:
+        subject = match.group(1).lower()  # Приводим к нижнему регистру
+        grade = match.group(2)
+        variant = match.group(3)
+        return subject, grade, variant
+    return None, None, None
 
-# Функция для распознавания таблицы
-def recognize_table(region_img, model):
-    wired_engine = WiredTableRecognition()
-    _, _, polygons, logic_points, _ = wired_engine(region_img, need_ocr=False)
-    second_row_cells = []
-    for i, logic in enumerate(logic_points):
-        if logic[0] == 1 and logic[1] == 1:  # Фильтр для второй строки
-            second_row_cells.append({
-                "index": i + 1,
-                "coordinates": list(map(int, polygons[i])),
-            })
+# Поиск наиболее схожего ключа в конфиге
+def find_closest_key(subject, config):
+    # Получаем список всех ключей в конфиге
+    keys = [key for key in config.keys() if key not in ["regions"]]
 
-    # Фильтрация ячеек (пример для 13 ячеек)
-    second_row_cells = second_row_cells[1:-2]
+    # Ищем наиболее схожий ключ по предмету
+    closest_matches = get_close_matches(subject, keys, n=1, cutoff=0.6)
+    return closest_matches[0] if closest_matches else None
 
-    results = []
-    for cell_info in second_row_cells:
-        x1, y1, x2, y2 = cell_info["coordinates"]
-        cell_img = region_img[y1:y2, x1:x2]
-
-        input_data, _ = preprocess_image(cell_img)
-        if input_data is None:
-            results.append({
-                "index": cell_info["index"],
-                "coordinates": cell_info["coordinates"],
-                "content": None,
-                "probability": 0.0
-            })
-            continue
-
-        predictions = model.predict(input_data)
-        predicted_digit = int(np.argmax(predictions))
-        predicted_prob = float(np.max(predictions))
-
-        results.append({
-            "index": cell_info["index"],
-            "coordinates": cell_info["coordinates"],
-            "content": predicted_digit,
-            "probability": predicted_prob
-        })
-
-    return {
-        "total_cells": len(results),
-        "cells": results
-    }
-
-# Основная функция обработки изображения
-def process_image(image, config, model):
-    doc_type = "math_6_grade"
-    regions_config = config[doc_type]["regions"]
-
-    hat_region = extract_region(image, config["regions"]["hat"])
-    code_region = extract_region(image, config["regions"]["code"])
-    table_region = extract_region(image, regions_config["table"])
-
-    table_result = recognize_table(table_region, model)
-
-    return {
-        "hat": recognize_hat(hat_region),
-        "code": recognize_code(code_region),
-        "table": table_result
-    }
-
-# API endpoint для обработки изображения
-@app.route('/process-image', methods=['POST'])
-def process_image_api():
+# Ручка для обработки изображения
+@app.post("/recognize")
+def recognize_image(request: ImageRequest):
     try:
-        # Получаем base64 из запроса
-        data = request.json
-        if not data or 'image' not in data:
-            return jsonify({"error": "No image provided"}), 400
-
-        # Декодируем base64 в изображение
-        image_data = base64.b64decode(data['image'])
-        nparr = np.frombuffer(image_data, np.uint8)
-        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Декодируем изображение из base64
+        image_data = base64.b64decode(request.image_base64)
+        image_np = np.frombuffer(image_data, dtype=np.uint8)
+        image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
 
         if image is None:
-            return jsonify({"error": "Failed to decode image"}), 400
+            raise HTTPException(status_code=400, detail="Ошибка обработки изображения")
 
-        # Обрабатываем изображение
-        result = process_image(image, config, model)
+        # Извлечение шапки
+        hat_region = extract_region(image, config["regions"]["hat"])
+        hat_text = recognize_hat(hat_region)
+        print(f"Распознанный текст шапки: {hat_text}")
 
-        # Возвращаем результат
-        return jsonify(result), 200
+        # Определение предмета, класса и варианта
+        subject, grade, variant = parse_hat_text(hat_text)
+        if not subject or not grade or not variant:
+            raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант из шапки")
+
+        # Формируем ключ для поиска в конфиге
+        key = f"{subject} {grade}"
+        print(f"Ищем ключ в конфиге: {key}")
+
+        # Поиск ключа в конфиге
+        if key not in config:
+            print(f"Ключ '{key}' не найден в конфиге. Поиск наиболее схожего ключа...")
+            closest_key = find_closest_key(subject, config)
+            if closest_key:
+                print(f"Найден наиболее схожий ключ: {closest_key}")
+                key = closest_key
+            else:
+                raise HTTPException(status_code=400, detail="Не удалось найти подходящий ключ в конфиге")
+
+        # Извлечение кода участника
+        code_region = extract_region(image, config["regions"]["code"])
+        code = recognize_code(code_region, mnist_model)  # Используем стандартную модель
+        print(f"Распознанный код участника: {code}")
+
+        # Извлечение таблицы
+        table_coords = config[key]["table"]
+        table_region = extract_region(image, table_coords)
+
+        # Распознавание таблицы
+        recognized_digits = recognize_table(table_region, extended_model, config[key])  # Используем расширенную модель
+        print(f"Распознанные цифры из таблицы: {recognized_digits}")
+
+        # Преобразуем numpy.int64 в стандартные типы Python
+        recognized_digits = [int(digit) for digit in recognized_digits]
+
+        # Формируем JSON-ответ
+        return {
+            "subject": subject,
+            "grade": grade,
+            "variant": variant,
+            "participant_code": code,
+            "scores": recognized_digits
+        }
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Запуск Flask приложения
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+# Запуск сервера
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -4,15 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lineless_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
-from wired_table_rec.utils import ImageOrientationCorrector
 
-from mnist_preprocess_image import preprocess_image
+from services.mnist_preprocess2 import rec_digit  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = 'help_imgs/Screenshot_4.jpg'
+IMG_PATH = 'cropped_tables/page_1.jpg'
 
 # Загрузка модели MNIST
-model = tf.keras.models.load_model("mnist_model.keras")
+model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
 print("Модель успешно загружена.")
 
 # Инициализация движка для распознавания таблиц
@@ -20,9 +19,6 @@ table_engine = WiredTableRecognition()
 
 # Загрузка изображения таблицы
 img = cv2.imread(IMG_PATH)
-# img_orientation_corrector = ImageOrientationCorrector()
-# # Загрузка и коррекция ориентации изображения
-# image = img_orientation_corrector(img)
 if img is None:
     raise FileNotFoundError(f"Изображение по пути {IMG_PATH} не найдено.")
 print("Изображение успешно загружено.")
@@ -35,11 +31,11 @@ _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
 
 # Морфологические операции для соединения пунктирных линий
 kernel = np.ones((3, 3), np.uint8)  # Размер ядра можно настроить
-dilated = cv2.dilate(binary, kernel, iterations=1)  # Дилатация для соединения линий
-eroded = cv2.erode(dilated, kernel, iterations=1)
+dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для соединения линий
+eroded = cv2.erode(dilated, kernel, iterations=2)
 
 # Показываем изображение с контурами
-cv2.imshow("Контуры цифр", gray)
+cv2.imshow("Контуры цифр", eroded)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
@@ -76,34 +72,36 @@ for i, cell in enumerate(second_row_cells):
         print(f"Ячейка {i + 1}: Изображение пустое или невалидное.")
         continue
 
-    # Предобработка изображения ячейки
-    input_data, processed_img = preprocess_image(cell_img)
-    if input_data is None:
-        print(f"Ячейка {i + 1}: Не удалось обработать изображение.")
-        continue
+    # Сохраняем временное изображение для препроцессинга
+    temp_path = "temp_digit.png"
+    cv2.imwrite(temp_path, cell_img)
 
-    # Распознавание цифры
-    predictions = model.predict(input_data)
-    predicted_digit = np.argmax(predictions)
-    predicted_prob = np.max(predictions)
+    # Препроцессинг с использованием rec_digit
+    input_data = rec_digit(temp_path)
 
-    # Сохранение распознанной цифры
-    recognized_digits.append(predicted_digit)
+    if input_data is not None:
+        # Распознавание цифры
+        predictions = model.predict(input_data)
+        predicted_digit = np.argmax(predictions)
+        predicted_prob = np.max(predictions)
 
-    # Вывод результата
-    print(f"Ячейка {i + 1}: Распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}")
+        # Сохранение распознанной цифры
+        recognized_digits.append(predicted_digit)
 
-    # Визуализация оригинальной ячейки
-    plt.subplot(2, len(second_row_cells), i + 1)
-    plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
-    plt.title(f"Original {i + 1}")
-    plt.axis('off')
+        # Вывод результата
+        print(f"Ячейка {i + 1}: Распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}")
 
-    # Визуализация обработанной ячейки
-    plt.subplot(2, len(second_row_cells), i + 1 + len(second_row_cells))
-    plt.imshow(processed_img, cmap='gray')
-    plt.title(f"Processed {i + 1}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}")
-    plt.axis('off')
+        # Визуализация оригинальной ячейки
+        plt.subplot(2, len(second_row_cells), i + 1)
+        plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
+        plt.title(f"Original {i + 1}")
+        plt.axis('off')
+
+        # Визуализация обработанной ячейки
+        plt.subplot(2, len(second_row_cells), i + 1 + len(second_row_cells))
+        plt.imshow(input_data.reshape(28, 28), cmap='gray')
+        plt.title(f"Processed {i + 1}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}")
+        plt.axis('off')
 
 # Отображение графиков
 plt.tight_layout()
