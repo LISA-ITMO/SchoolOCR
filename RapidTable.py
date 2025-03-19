@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from lineless_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
-from services.mnist_preprocess2 import rec_digit  # Импортируем новую функцию препроцессинга
+from services.mnist_preprocess_image import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
 IMG_PATH = 'cropped_tables/page_1.jpg'
@@ -19,6 +19,7 @@ table_engine = WiredTableRecognition()
 
 # Загрузка изображения таблицы
 img = cv2.imread(IMG_PATH)
+
 if img is None:
     raise FileNotFoundError(f"Изображение по пути {IMG_PATH} не найдено.")
 print("Изображение успешно загружено.")
@@ -35,7 +36,7 @@ dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для 
 eroded = cv2.erode(dilated, kernel, iterations=2)
 
 # Показываем изображение с контурами
-cv2.imshow("Контуры цифр", eroded)
+cv2.imshow("Контуры цифр", gray)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
@@ -54,7 +55,7 @@ for i, logic in enumerate(logic_points):
         second_row_cells.append(polygons[i])
 
 # Убираем лишние ячейки (если нужно)
-second_row_cells = second_row_cells[1:-2]
+second_row_cells = second_row_cells[::]
 
 # Массив для хранения распознанных цифр
 recognized_digits = []
@@ -72,12 +73,7 @@ for i, cell in enumerate(second_row_cells):
         print(f"Ячейка {i + 1}: Изображение пустое или невалидное.")
         continue
 
-    # Сохраняем временное изображение для препроцессинга
-    temp_path = "temp_digit.png"
-    cv2.imwrite(temp_path, cell_img)
-
-    # Препроцессинг с использованием rec_digit
-    input_data = rec_digit(temp_path)
+    input_data = preprocess_image(cell_img)
 
     if input_data is not None:
         # Распознавание цифры

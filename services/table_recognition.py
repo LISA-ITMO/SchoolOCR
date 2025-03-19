@@ -1,19 +1,43 @@
+import os
+import time
+
 import cv2
 import numpy as np
 from wired_table_rec import WiredTableRecognition
 from wired_table_rec.utils import ImageOrientationCorrector
+from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 
 from services.mnist_preprocess_image import preprocess_image
 
 
+def filter_cells_by_logic(logic_points, polygons, row_config):
+    # Фильтрация ячеек второй строки
+    second_row_cells = [polygons[i] for i, logic in enumerate(logic_points) if logic[0] == 1 and logic[1] == 1]
+
+    # Убираем лишние ячейки в зависимости от конфигурации
+    if row_config["rows"] == 2:
+        second_row_cells = second_row_cells[1:]  # Удаляем первую ячейку второй строки
+
+        # Фильтрация ячеек третьей строки
+        third_row_cells = [polygons[i] for i, logic in enumerate(logic_points) if logic[0] == 3 and logic[1] == 3]
+        third_row_cells = third_row_cells[1:-2]  # Удаляем первую и последние две ячейки третьей строки
+
+        # Объединяем ячейки второй и третьей строк
+        second_row_cells.extend(third_row_cells)
+    else:
+        second_row_cells = second_row_cells[1:-2]  # Удаляем первую и последние две ячейки второй строки
+
+    return second_row_cells
+
+
 def recognize_table(image, model, config):
     """
-    Распознает таблицу на изображении и возвращает распознанные цифры.
+    Распознает таблицу на изображении и возвращает распознанные цифры с вероятностями.
 
     :param image: Изображение с таблицей.
     :param model: Модель для распознавания цифр.
     :param config: Конфигурация с параметрами таблицы.
-    :return: Список распознанных цифр.
+    :return: Список кортежей (цифра, вероятность).
     """
     # Инициализация движка для распознавания таблиц
     table_engine = WiredTableRecognition()
@@ -29,42 +53,56 @@ def recognize_table(image, model, config):
     dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для соединения линий
 
     # Распознавание таблицы
-    html, elasp, polygons, logic_points, ocr_res = table_engine(image, need_ocr=False)
+    html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
 
-    if len(logic_points) != config["total_cells"]:
+    # Выделение нужных ячеек с использованием отдельной функции
+    filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+    if len(filtered_cells) != config["total_cells"]:
         html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
-    if len(logic_points) != config["total_cells"]:
+    if len(filtered_cells) != config["total_cells"]:
         img_orientation_corrector = ImageOrientationCorrector()
         # Загрузка и коррекция ориентации изображения
         dilated = img_orientation_corrector(dilated)
         html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
-    # Выделение нужных ячеек (вторая строка)
-    second_row_cells = []
-    for i, logic in enumerate(logic_points):
-        if logic[0] == 1 and logic[1] == 1:  # Вторая строка
-            second_row_cells.append(polygons[i])
+    if len(filtered_cells) != config["total_cells"]:
+        img_orientation_corrector = ImageOrientationCorrector()
+        gray = img_orientation_corrector(gray)
+        html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
-    # Убираем лишние ячейки (если нужно)
-    if config["rows"] == 2:
-        second_row_cells = second_row_cells[1:]
+    if len(filtered_cells) != config["total_cells"]:
+        img_orientation_corrector = ImageOrientationCorrector()
+        gray = img_orientation_corrector(gray)
+        os.makedirs("./bad_tables", exist_ok=True)
 
-        third_row_cells = []
-        for i, logic in enumerate(logic_points):
-            if logic[0] == 3 and logic[1] == 3:  # Вторая строка
-                third_row_cells.append(polygons[i])
-        third_row_cells = third_row_cells[1:-2]
-        second_row_cells.extend(third_row_cells)
+        # Генерируем уникальное имя файла с использованием временной метки
+        timestamp = int(time.time() * 1000)  # Текущее время в миллисекундах
+        output_image_path = f"./bad_tables/table_image_{timestamp}.jpg"
 
-    else:
-        second_row_cells = second_row_cells[1:-2]
+        # Сохраняем текущее изображение
+        cv2.imwrite(output_image_path, gray)
 
-    # Массив для хранения распознанных цифр
-    recognized_digits = []
+        # Передаем путь к сохраненному изображению в функцию plot_rec_box_with_logic_info
+        plot_rec_box_with_logic_info(
+            output_image_path,
+            f"./bad_tables/table_rec_box_{timestamp}.jpg",
+            logic_points,
+            polygons
+        )
+        print(f"Количество отфильтрованных ячеек: {len(filtered_cells)}")
+        print(f"Ожидаемое количество ячеек: {config['total_cells']}")
+        return None
+
+    # Массив для хранения распознанных цифр с вероятностями
+    recognized_results = []
 
     # Обработка каждой ячейки
-    for i, cell in enumerate(second_row_cells):
+    for i, cell in enumerate(filtered_cells):
         x1, y1, x2, y2 = map(int, cell)
         cell_img = image[y1:y2, x1:x2]
 
@@ -74,7 +112,7 @@ def recognize_table(image, model, config):
             continue
 
         # Предобработка изображения ячейки
-        input_data, processed_img = preprocess_image(cell_img)
+        input_data, _ = preprocess_image(cell_img)
         if input_data is None:
             print(f"Ячейка {i + 1}: Не удалось обработать изображение.")
             continue
@@ -84,10 +122,7 @@ def recognize_table(image, model, config):
         predicted_digit = np.argmax(predictions)
         predicted_prob = np.max(predictions)
 
-        # Сохранение распознанной цифры
-        recognized_digits.append(predicted_digit)
+        # Сохранение распознанной цифры с вероятностью
+        recognized_results.append((predicted_digit, predicted_prob))
 
-        # Вывод результата
-        print(f"Ячейка {i + 1}: Распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}")
-
-    return recognized_digits
+    return recognized_results

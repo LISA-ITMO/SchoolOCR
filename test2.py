@@ -118,4 +118,4 @@ def main(image_path, config_path="config.json"):
 
 
 if __name__ == "__main__":
-    main("output_images/page_93.jpg")
+    main("output_images/page_1.jpg")

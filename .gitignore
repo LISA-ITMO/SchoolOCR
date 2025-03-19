@@ -12,6 +12,11 @@ cropped_code/
 cropped_tables/
 cropped_hat/
 output_images/
+russian 8/
+history/
+processed_lists_russian8/
+processed_lists_history/
+
 
 # C extensions
 *.so

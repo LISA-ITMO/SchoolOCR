@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from wired_table_rec.utils import ImageOrientationCorrector
 
-from services.mnist_preprocess2 import rec_digit
+from services.mnist_preprocess2 import preprocess_image
 
 def recognize_code(image, model):
     """
@@ -58,6 +58,9 @@ def recognize_code(image, model):
     # Удаление трех крайних левых контуров
     cropped_contours = cropped_contours[3:]
 
+    if len(cropped_contours) == 0:
+        return None
+
     # Создаем копию изображения для отрисовки контуров
     contour_image = cv2.cvtColor(cropped, cv2.COLOR_GRAY2BGR)
 
@@ -75,7 +78,7 @@ def recognize_code(image, model):
         digit_roi = cropped[y_:y_ + h_, x_:x_ + w_]
 
         # Препроцессинг с использованием rec_digit
-        input_data = rec_digit(digit_roi)
+        input_data = preprocess_image(digit_roi)
 
         if input_data is not None:
             pred = model.predict(input_data)

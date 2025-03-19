@@ -18,7 +18,7 @@ def shift(img,sx,sy):
     shifted = cv2.warpAffine(img,M,(cols,rows))
     return shifted
   
-def rec_digit(img):
+def preprocess_image(img):
   gray = 255-img
   (_, gray) = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
   

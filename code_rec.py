@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from services.mnist_preprocess2 import rec_digit  # Импортируем новую функцию препроцессинга
+from services.mnist_preprocess2 import preprocess_image  # Импортируем новую функцию препроцессинга
 from wired_table_rec.utils import ImageOrientationCorrector
 
 def process_and_recognize_digits(image_path):
@@ -125,7 +125,7 @@ def process_and_recognize_digits(image_path):
         digit_roi = cropped[y_:y_ + h_, x_:x_ + w_]
 
         # Препроцессинг с использованием rec_digit
-        input_data = rec_digit(digit_roi)
+        input_data = preprocess_image(digit_roi)
 
         if input_data is not None:
             pred = model.predict(input_data)
