@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from wired_table_rec import WiredTableRecognition
-from services.mnist_preprocess_image import preprocess_image
+from services.mnist_preprocess_cell import preprocess_image
 
 INPUT_DIR = "./cropped_tables"
 OUTPUT_DIR = "./processed_tables"

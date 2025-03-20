@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from services.mnist_preprocess2 import preprocess_image  # Импортируем новую функцию препроцессинга
+from services.mnist_preprocess_code import preprocess_image  # Импортируем новую функцию препроцессинга
 from wired_table_rec.utils import ImageOrientationCorrector
 
 def process_and_recognize_digits(image_path):

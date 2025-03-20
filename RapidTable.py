@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from lineless_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
-from services.mnist_preprocess_image import preprocess_image  # Импортируем новую функцию препроцессинга
+from services.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
 IMG_PATH = 'help_imgs/img_14.png'

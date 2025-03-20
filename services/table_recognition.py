@@ -7,7 +7,7 @@ from wired_table_rec import WiredTableRecognition
 from wired_table_rec.utils import ImageOrientationCorrector
 from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 
-from services.mnist_preprocess_image import preprocess_image
+from services.mnist_preprocess_cell import preprocess_image
 from services.preprocess_general import preprocess_general
 
 
