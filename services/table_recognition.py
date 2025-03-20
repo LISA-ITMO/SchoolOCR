@@ -76,22 +76,22 @@ def recognize_table(image, model, config):
         # Находим нижнюю координату всех полигонов второй строки
         _, _, polygons, logic_points, _ = table_engine(preprocessed, need_ocr=False)
         second_row_cells = [polygons[i] for i, logic in enumerate(logic_points) if logic[0] == 1 or logic[1] == 1]
-        print(second_row_cells)
         bottom_coord = max([polygon[3] for polygon in second_row_cells])  # polygon[3] — это y2 (нижняя координата)
-        print(bottom_coord)
+        # print(second_row_cells)
+        # print(bottom_coord)
 
         # Делаем отступ в 3 пикселя и обрезаем изображение на две части
         split_y = int(bottom_coord) + 3
         upper_part = preprocessed[:split_y, :]  # Верхняя часть изображения
         lower_part = preprocessed[split_y:, :]  # Нижняя часть изображения
 
-        cv2.imshow("upper", upper_part)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-        cv2.imshow("lower", lower_part)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow("upper", upper_part)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        #
+        # cv2.imshow("lower", lower_part)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         # Обрабатываем каждую часть отдельно
         _, _, polygons_upper, logic_points_upper, _ = table_engine(upper_part, need_ocr=False)
