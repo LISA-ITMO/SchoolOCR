@@ -6,7 +6,7 @@ import json
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "output_images/page_1.jpg"
+IMAGE_PATH = "output_images/page_2.jpg"
 
 # Функция для кодирования изображения в base64
 def encode_image_to_base64(image_path):

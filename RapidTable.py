@@ -8,7 +8,7 @@ from wired_table_rec import WiredTableRecognition
 from services.mnist_preprocess_image import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = 'cropped_tables/page_1.jpg'
+IMG_PATH = 'help_imgs/img_14.png'
 
 # Загрузка модели MNIST
 model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
@@ -73,7 +73,7 @@ for i, cell in enumerate(second_row_cells):
         print(f"Ячейка {i + 1}: Изображение пустое или невалидное.")
         continue
 
-    input_data = preprocess_image(cell_img)
+    input_data, _ = preprocess_image(cell_img)
 
     if input_data is not None:
         # Распознавание цифры

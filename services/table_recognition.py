@@ -8,6 +8,7 @@ from wired_table_rec.utils import ImageOrientationCorrector
 from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 
 from services.mnist_preprocess_image import preprocess_image
+from services.preprocess_general import preprocess_general
 
 
 def filter_cells_by_logic(logic_points, polygons, row_config):
@@ -42,21 +43,22 @@ def recognize_table(image, model, config):
     # Инициализация движка для распознавания таблиц
     table_engine = WiredTableRecognition()
 
-    # Преобразуем изображение в градации серого
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Применение бинаризации
-    _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
+    preprocessed = preprocess_general(image)
 
     # Морфологические операции для соединения пунктирных линий
     kernel = np.ones((3, 3), np.uint8)  # Размер ядра можно настроить
-    dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для соединения линий
+    dilated = cv2.dilate(preprocessed, kernel, iterations=2)  # Дилатация для соединения линий
 
     # Распознавание таблицы
-    html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
+    html, elasp, polygons, logic_points, ocr_res = table_engine(image, need_ocr=False)
 
     # Выделение нужных ячеек с использованием отдельной функции
     filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+    # Если количество ячеек всё ещё не совпадает, пробуем другие методы
+    if len(filtered_cells) != config["total_cells"]:
+        html, elasp, polygons, logic_points, ocr_res = table_engine(preprocessed, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
     if len(filtered_cells) != config["total_cells"]:
         html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
@@ -69,15 +71,42 @@ def recognize_table(image, model, config):
         html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
         filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
-    if len(filtered_cells) != config["total_cells"]:
-        img_orientation_corrector = ImageOrientationCorrector()
-        gray = img_orientation_corrector(gray)
-        html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
-        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+        # Если количество ячеек не совпадает и таблица имеет 2 строки
+    if len(filtered_cells) != config["total_cells"] and config["rows"] == 2:
+        # Находим нижнюю координату всех полигонов второй строки
+        _, _, polygons, logic_points, _ = table_engine(preprocessed, need_ocr=False)
+        second_row_cells = [polygons[i] for i, logic in enumerate(logic_points) if logic[0] == 1 or logic[1] == 1]
+        print(second_row_cells)
+        bottom_coord = max([polygon[3] for polygon in second_row_cells])  # polygon[3] — это y2 (нижняя координата)
+        print(bottom_coord)
+
+        # Делаем отступ в 3 пикселя и обрезаем изображение на две части
+        split_y = int(bottom_coord) + 3
+        upper_part = preprocessed[:split_y, :]  # Верхняя часть изображения
+        lower_part = preprocessed[split_y:, :]  # Нижняя часть изображения
+
+        cv2.imshow("upper", upper_part)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imshow("lower", lower_part)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        # Обрабатываем каждую часть отдельно
+        _, _, polygons_upper, logic_points_upper, _ = table_engine(upper_part, need_ocr=False)
+        _, _, polygons_lower, logic_points_lower, _ = table_engine(lower_part, need_ocr=False)
+
+        # Фильтруем ячейки для каждой части
+        filtered_cells_upper = [polygons_upper[i] for i, logic in enumerate(logic_points_upper) if
+                                logic[0] == 1 and logic[1] == 1]
+        filtered_cells_lower = [polygons_lower[i] for i, logic in enumerate(logic_points_lower) if
+                                logic[0] == 1 and logic[1] == 1]
+
+        # Соединяем результаты
+        filtered_cells = filtered_cells_upper[1:] + filtered_cells_lower[1:-2]
 
     if len(filtered_cells) != config["total_cells"]:
-        img_orientation_corrector = ImageOrientationCorrector()
-        gray = img_orientation_corrector(gray)
         os.makedirs("./bad_tables", exist_ok=True)
 
         # Генерируем уникальное имя файла с использованием временной метки
@@ -85,7 +114,7 @@ def recognize_table(image, model, config):
         output_image_path = f"./bad_tables/table_image_{timestamp}.jpg"
 
         # Сохраняем текущее изображение
-        cv2.imwrite(output_image_path, gray)
+        cv2.imwrite(output_image_path, dilated)
 
         # Передаем путь к сохраненному изображению в функцию plot_rec_box_with_logic_info
         plot_rec_box_with_logic_info(

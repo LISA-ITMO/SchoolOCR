@@ -23,13 +23,16 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
 mnist_model = tf.keras.models.load_model("mnist_model.keras")  # Стандартная модель
 extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")  # Расширенная модель
 
+
 class ImageRequest(BaseModel):
     image_base64: str
+
 
 # Извлечение региона из изображения
 def extract_region(image, coords):
     x1, y1, x2, y2 = coords["x1"], coords["y1"], coords["x2"], coords["y2"]
     return image[y1:y2, x1:x2]
+
 
 # Распознавание текста из шапки
 def recognize_hat(region_img):
@@ -37,17 +40,21 @@ def recognize_hat(region_img):
     text = pytesseract.image_to_string(region_img, lang="rus").strip()
     return text
 
+
 # Определение предмета и класса из текста шапки
 def parse_hat_text(text):
     # Регулярное выражение для извлечения предмета, класса и варианта
-    pattern = re.compile(r"ВПР\.\s*([А-Яа-я]+\s*[А-Яа-я]*)\s*\.\s*(\d+)\s*класс\.*\s*Вариант\s*(\d+)", re.IGNORECASE)
+    pattern = re.compile(r"\.\s*([А-Яа-я]+)\s*\.\s*(\d+)\s*[^.]*\.\s*Вариант\s*(\d+)", re.IGNORECASE)
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
         grade = match.group(2)
+        if '&' in grade:
+            grade = grade.replace('&', '8')
         variant = match.group(3)
         return subject, grade, variant
     return None, None, None
+
 
 # Поиск наиболее схожего ключа в конфиге
 def find_closest_key(subject, config):
@@ -57,6 +64,7 @@ def find_closest_key(subject, config):
     # Ищем наиболее схожий ключ по предмету
     closest_matches = get_close_matches(subject, keys, n=1, cutoff=0.6)
     return closest_matches[0] if closest_matches else None
+
 
 # Сопоставление распознанных цифр с номерами заданий
 def map_digits_to_tasks(recognized_digits, task_numbers):
@@ -70,6 +78,7 @@ def map_digits_to_tasks(recognized_digits, task_numbers):
         else:
             task_dict[f"extra_{i}"] = digit  # Если цифр больше, чем заданий
     return task_dict
+
 
 # Ручка для обработки изображения
 @app.post("/recognize")
@@ -127,7 +136,7 @@ def recognize_image(request: ImageRequest):
         recognized_digits = recognize_table(table_region, extended_model, config[key])  # Используем расширенную модель
 
         task_dict = {}
-        warnings = []  # Список для предупреждений
+        warnings = []
 
         if not recognized_digits:
             errors.append(f"Не удалось распознать таблицу")
@@ -151,9 +160,9 @@ def recognize_image(request: ImageRequest):
             "grade": grade,
             "variant": variant,
             "participant_code": code,
-            "scores": task_dict,  # Возвращаем словарь с сопоставленными значениями
+            "scores": task_dict,
             "errors": errors if errors else None,
-            "warnings": warnings if warnings else None  # Добавляем предупреждения, если они есть
+            "warnings": warnings if warnings else None
         }
 
         return response
@@ -162,7 +171,9 @@ def recognize_image(request: ImageRequest):
         errors.append(str(e))
         raise HTTPException(status_code=500, detail={"errors": errors})
 
+
 # Запуск сервера
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

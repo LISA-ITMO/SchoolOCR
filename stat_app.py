@@ -2,7 +2,7 @@ import os
 import json
 
 # Путь к папке с JSON-файлами
-JSON_DIR = "processed_lists"
+JSON_DIR = "processed_lists_history"
 
 
 # Функция для подсчета ошибок и предупреждений
