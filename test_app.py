@@ -2,98 +2,117 @@ import os
 import requests
 import base64
 import json
+from datetime import datetime
 
 # Адрес сервера
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Пути к папкам
 INPUT_IMAGES_DIR = "output_images"  # Папка с исходными изображениями
-PROCESSED_LISTS_DIR = "processed_lists"  # Папка для сохранения результатов
+PROCESSED_LISTS_DIR = "processed_lists_docker"  # Папка для сохранения результатов
 
 
-# Функция для кодирования изображения в base64
+class RequestStats:
+    def __init__(self):
+        self.total_requests = 0
+        self.successful_requests = 0
+        self.failed_requests = 0
+        self.error_codes = {}
+        self.start_time = datetime.now()
+
+    def add_success(self):
+        self.total_requests += 1
+        self.successful_requests += 1
+
+    def add_failure(self, status_code=None):
+        self.total_requests += 1
+        self.failed_requests += 1
+        if status_code:
+            self.error_codes[status_code] = self.error_codes.get(status_code, 0) + 1
+
+    def print_stats(self):
+        duration = datetime.now() - self.start_time
+        print("\n=== Статистика обработки ===")
+        print(f"Всего запросов: {self.total_requests}")
+        print(f"Успешных: {self.successful_requests} ({self.successful_requests / self.total_requests:.1%})")
+        print(f"Неудачных: {self.failed_requests} ({self.failed_requests / self.total_requests:.1%})")
+        if self.error_codes:
+            print("Коды ошибок:")
+            for code, count in self.error_codes.items():
+                print(f"  {code}: {count} раз")
+        print(f"Общее время выполнения: {duration.total_seconds():.2f} сек")
+        print(f"Среднее время на запрос: {duration.total_seconds() / self.total_requests:.2f} сек")
+
+
+stats = RequestStats()
+
+
 def encode_image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
 def send_image_to_server(image_base64):
-    # Формируем JSON-тело запроса
     payload = {"image_base64": image_base64}
 
     try:
-        # Отправляем POST-запрос на сервер
-        response = requests.post(SERVER_URL, json=payload)
+        response = requests.post(SERVER_URL, json=payload, timeout=10)
 
-        # Проверяем статус ответа
         if response.status_code == 200:
-            return response.json()  # Возвращаем JSON-ответ
+            stats.add_success()
+            return response.json()
         else:
+            stats.add_failure(response.status_code)
             print(f"Ошибка: {response.status_code}")
             print(response.text)
             return None
     except Exception as e:
+        stats.add_failure()
         print(f"Произошла ошибка при отправке запроса: {e}")
         return None
 
 
-# Функция для сохранения результата
 def save_result(image_path, server_response):
-    # Извлекаем имя файла без расширения
     image_name = os.path.splitext(os.path.basename(image_path))[0]
-
-    # Создаем папку с именем файла
     result_dir = os.path.join(PROCESSED_LISTS_DIR, image_name)
     os.makedirs(result_dir, exist_ok=True)
 
-    # Сохраняем исходное изображение
     saved_image_path = os.path.join(result_dir, os.path.basename(image_path))
     with open(saved_image_path, "wb") as f:
         with open(image_path, "rb") as img_file:
             f.write(img_file.read())
-    print(f"Изображение сохранено: {saved_image_path}")
 
-    # Сохраняем JSON-ответ сервера
     json_path = os.path.join(result_dir, "response.json")
     with open(json_path, "w", encoding="utf-8") as json_file:
         json.dump(server_response, json_file, indent=4, ensure_ascii=False)
-    print(f"JSON-ответ сохранен: {json_path}")
 
 
-# Основная функция
 def main():
-    # Проверяем, существует ли папка с изображениями
     if not os.path.exists(INPUT_IMAGES_DIR):
         print(f"Папка {INPUT_IMAGES_DIR} не найдена.")
         return
 
-    # Получаем список всех изображений в папке
     image_files = [f for f in os.listdir(INPUT_IMAGES_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
     if not image_files:
         print(f"В папке {INPUT_IMAGES_DIR} нет изображений.")
         return
 
-    # Обрабатываем каждое изображение
-    for image_file in image_files:
+    print(f"Найдено {len(image_files)} изображений для обработки")
+
+    for idx, image_file in enumerate(image_files, 1):
         image_path = os.path.join(INPUT_IMAGES_DIR, image_file)
-        print(f"Обработка изображения: {image_path}")
+        print(f"\n[{idx}/{len(image_files)}] Обработка изображения: {image_path}")
 
-        # Кодируем изображение в base64
         image_base64 = encode_image_to_base64(image_path)
-        print("Изображение успешно закодировано в base64.")
-
-        # Отправляем изображение на сервер
-        print("Отправка изображения на сервер...")
         server_response = send_image_to_server(image_base64)
 
         if server_response:
-            print("Ответ от сервера получен:")
-            print(json.dumps(server_response, indent=4, ensure_ascii=False))
-
-            # Сохраняем результат
             save_result(image_path, server_response)
+            print("Результат успешно сохранен")
         else:
-            print(f"Не удалось получить ответ от сервера для изображения: {image_path}")
+            print("Не удалось обработать изображение")
+
+    stats.print_stats()
 
 
 if __name__ == "__main__":

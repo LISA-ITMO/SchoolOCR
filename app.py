@@ -36,15 +36,27 @@ def extract_region(image, coords):
 
 # Распознавание текста из шапки
 def recognize_hat(region_img):
-    region_img = preprocess_general(region_img)
-    text = pytesseract.image_to_string(region_img, lang="rus").strip()
+    processed_img = preprocess_general(region_img)
+
+    # Настройки Tesseract:
+    # - Ограничение символов: русские буквы, цифры, точки и запятые
+    # - Режим: 6 (Предполагается единый блок текста)
+    # - Движок: 3 (LSTM + Legacy)
+    custom_config = r'tessedit_char_whitelist=абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789. '
+
+    text = pytesseract.image_to_string(processed_img,
+                                       config=custom_config,
+                                       lang='rus').strip()
     return text
 
 
 # Определение предмета и класса из текста шапки
 def parse_hat_text(text):
     # Регулярное выражение для извлечения предмета, класса и варианта
-    pattern = re.compile(r"\.\s*([А-Яа-я]+)\s*\.\s*(\d+)\s*[^.]*\.\s*Вариант\s*(\d+)", re.IGNORECASE)
+    pattern = re.compile(
+        r"[,.]\s*([А-Яа-яЁё]+)\s*[,.]\s*(\d+)\s*[^,.]*[,.]\s*Вариант\s*(\d+)",
+        re.IGNORECASE
+    )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
@@ -53,6 +65,7 @@ def parse_hat_text(text):
             grade = grade.replace('&', '8')
         variant = match.group(3)
         return subject, grade, variant
+
     return None, None, None
 
 
