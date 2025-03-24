@@ -12,3 +12,4 @@ https://github.com/RapidAI/TableStructureRec/blob/main/README_en.md
 https://github.com/RapidAI/RapidLayout
 https://huggingface.co/spaces/rizgiak/table-to-csv-pipeline
 https://github.com/ZZR8066/SEMv2?tab=readme-ov-file
+https://www.datacamp.com/tutorial/use-qwen2-5-vl-locally

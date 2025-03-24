@@ -10,12 +10,13 @@ SERVER_URL = "http://localhost:8000/recognize"
 INPUT_IMAGES_DIR = "output_images"  # Папка с исходными изображениями
 PROCESSED_LISTS_DIR = "processed_lists"  # Папка для сохранения результатов
 
+
 # Функция для кодирования изображения в base64
 def encode_image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
-# Функция для отправки запроса на сервер
+
 def send_image_to_server(image_base64):
     # Формируем JSON-тело запроса
     payload = {"image_base64": image_base64}
@@ -34,6 +35,7 @@ def send_image_to_server(image_base64):
     except Exception as e:
         print(f"Произошла ошибка при отправке запроса: {e}")
         return None
+
 
 # Функция для сохранения результата
 def save_result(image_path, server_response):
@@ -56,6 +58,7 @@ def save_result(image_path, server_response):
     with open(json_path, "w", encoding="utf-8") as json_file:
         json.dump(server_response, json_file, indent=4, ensure_ascii=False)
     print(f"JSON-ответ сохранен: {json_path}")
+
 
 # Основная функция
 def main():
@@ -91,6 +94,7 @@ def main():
             save_result(image_path, server_response)
         else:
             print(f"Не удалось получить ответ от сервера для изображения: {image_path}")
+
 
 if __name__ == "__main__":
     main()

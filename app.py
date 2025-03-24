@@ -133,33 +133,46 @@ def recognize_image(request: ImageRequest):
         table_region = extract_region(image, table_coords)
 
         # Распознавание таблицы
-        recognized_digits = recognize_table(table_region, extended_model, config[key])  # Используем расширенную модель
+        recognized_digits = recognize_table(table_region, extended_model, config[key])
 
         task_dict = {}
         warnings = []
+        total_score = 0
 
         if not recognized_digits:
-            errors.append(f"Не удалось распознать таблицу")
+            errors.append("Не удалось распознать таблицу")
         else:
-            # Преобразуем numpy.int64 в стандартные типы Python и округляем вероятность до 2 знаков
-            recognized_digits = [(int(digit), round(float(probability), 2)) for digit, probability in recognized_digits]
+            recognized_digits = [(int(digit), round(float(probability), 2))
+                                 for digit, probability in recognized_digits]
 
-            # Проверяем, есть ли цифры с вероятностью меньше 0.6
-            low_confidence_digits = [digit for digit, prob in recognized_digits if prob < 0.6]
-            if low_confidence_digits:
-                warnings.append(
-                    f"Низкая вероятность распознавания для цифр: {', '.join(map(str, low_confidence_digits))}")
+            task_numbers = config[key].get("task_numbers", "").split()
+            low_confidence_tasks = []
 
-            # Сопоставляем распознанные цифры с номерами заданий
-            task_numbers = config[key].get("task_numbers", "")
-            task_dict = map_digits_to_tasks(recognized_digits, task_numbers)
+            for i, (digit, prob) in enumerate(recognized_digits):
+                if i < len(task_numbers):
+                    task_name = task_numbers[i]
+                    task_dict[task_name] = (digit, prob)
 
-        # Формируем JSON-ответ
+                    # Проверяем вероятность и добавляем номер задания, если < 0.6
+                    if prob < 0.6:
+                        low_confidence_tasks.append(task_name)
+
+                    # Суммируем баллы, исключая задания 10 и 11
+                    if digit not in [10, 11]:
+                        total_score += digit
+                else:
+                    task_dict[f"extra_{i}"] = (digit, prob)
+
+            # Добавляем предупреждение с номерами заданий
+            if low_confidence_tasks:
+                warnings.append(f"Низкая вероятность распознавания для заданий: {', '.join(low_confidence_tasks)}")
+
         response = {
             "subject": subject,
             "grade": grade,
             "variant": variant,
             "participant_code": code,
+            "total_score": total_score,
             "scores": task_dict,
             "errors": errors if errors else None,
             "warnings": warnings if warnings else None

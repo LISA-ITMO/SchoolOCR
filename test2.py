@@ -118,4 +118,4 @@ def main(image_path, config_path="config.json"):
 
 
 if __name__ == "__main__":
-    main("help_imgs/rus7_3.jpg")
+    main("./russian 8/РУС 8 кл 1 в 39_page_6.jpg")
