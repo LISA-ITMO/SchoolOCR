@@ -5,18 +5,18 @@ __pycache__/
 
 *.zip
 *.pdf
-./Сканы титульников/*
-scans_jpg/
+scripts/Сканы титульников/*
+scripts/scans_jpg/
 debug*/
-cropped_code/
-cropped_tables/
-cropped_hat/
-output_images/
-russian 8/
-history/
-processed_lists_russian8/
-processed_lists_history/
-processed_lists_docker/
+scripts/cropped_code/
+scripts/cropped_tables/
+scripts/cropped_hat/
+scripts/output_images/
+scripts/russian 8/
+scripts/history/
+scripts/processed_lists_russian8/
+scripts/processed_lists_history/
+scripts/processed_lists_docker/
 
 
 # C extensions
