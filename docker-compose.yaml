@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   app:
-    image: python:3.11.7-slim-bookworm
     container_name: fastapi-app
     build:
       context: .
@@ -10,12 +9,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./:/app
+      - .:/app
     environment:
-      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+      - TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
       - PYTHONPATH=/app
+      - OMP_THREAD_LIMIT=2  # Оптимизация многопоточности Tesseract
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2G
+          cpus: "2"
+          memory: "2G"
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

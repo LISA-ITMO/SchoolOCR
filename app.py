@@ -38,15 +38,10 @@ def extract_region(image, coords):
 def recognize_hat(region_img):
     processed_img = preprocess_general(region_img)
 
-    # Настройки Tesseract:
-    # - Ограничение символов: русские буквы, цифры, точки и запятые
-    # - Режим: 6 (Предполагается единый блок текста)
-    # - Движок: 3 (LSTM + Legacy)
-    custom_config = r'tessedit_char_whitelist=абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789. '
+    whitelist = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
+    custom_config = f'-c tessedit_char_whitelist="{whitelist}" --psm 6'
 
-    text = pytesseract.image_to_string(processed_img,
-                                       config=custom_config,
-                                       lang='rus').strip()
+    text = pytesseract.image_to_string(processed_img, lang='rus', config=custom_config).strip()
     return text
 
 
@@ -54,7 +49,7 @@ def recognize_hat(region_img):
 def parse_hat_text(text):
     # Регулярное выражение для извлечения предмета, класса и варианта
     pattern = re.compile(
-        r"[,.]\s*([А-Яа-яЁё]+)\s*[,.]\s*(\d+)\s*[^,.]*[,.]\s*Вариант\s*(\d+)",
+        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*([^.]*)\s*(\d+)",
         re.IGNORECASE
     )
     match = pattern.search(text)
