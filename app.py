@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import cv2
@@ -13,6 +14,15 @@ from services.table_recognition import recognize_table
 from services.preprocess_general import preprocess_general
 
 app = FastAPI()
+
+# Добавьте этот блок для настройки CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Разрешает все домены
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешает все методы
+    allow_headers=["*"],  # Разрешает все заголовки
+)
 
 # Загрузка конфига
 

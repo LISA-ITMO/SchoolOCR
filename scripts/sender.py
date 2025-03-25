@@ -3,13 +3,13 @@ import base64
 import json
 
 # Адрес сервера
-SERVER_URL = "http://localhost:8000/recognize"
+SERVER_URL = "http://158.160.111.204:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "./scripts/output_images/page_1.jpg"
+IMAGE_PATH = "output_images/page_1.jpg"
 
 # API-ключ
-API_KEY = "your api key"
+API_KEY = "api key"
 
 # Функция для кодирования изображения в base64
 def encode_image_to_base64(image_path):
