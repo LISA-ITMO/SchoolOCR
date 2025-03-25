@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 import base64
 import cv2
@@ -15,6 +15,16 @@ from services.preprocess_general import preprocess_general
 app = FastAPI()
 
 # Загрузка конфига
+
+API_KEYS_PATH = "api_keys.json"
+try:
+    with open(API_KEYS_PATH, "r", encoding="utf-8") as f:
+        api_keys_config = json.load(f)
+    API_KEYS = set(api_keys_config.get("keys", []))
+except FileNotFoundError:
+    API_KEYS = set()
+    print("Файл api_keys.json не найден. API-ключи не загружены.")
+
 CONFIG_PATH = "config.json"
 with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     config = json.load(f)
@@ -88,10 +98,21 @@ def map_digits_to_tasks(recognized_digits, task_numbers):
     return task_dict
 
 
+# Проверка API-ключа
+def validate_api_key(api_key: str):
+    if not api_key or api_key not in API_KEYS:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+
+
 # Ручка для обработки изображения
 @app.post("/recognize")
-def recognize_image(request: ImageRequest):
+def recognize_image(request: ImageRequest, authorization: str = Header(None)):
     errors = []
+    print(1)
+    # Проверяем API-ключ
+    validate_api_key(authorization)
+    print(2)
+
     try:
         # Декодируем изображение из base64
         image_data = base64.b64decode(request.image_base64)

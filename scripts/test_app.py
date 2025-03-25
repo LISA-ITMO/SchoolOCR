@@ -5,11 +5,14 @@ import json
 from datetime import datetime
 
 # Адрес сервера
-SERVER_URL = "http://localhost:8000/recognize"
+SERVER_URL = "http://158.160.111.204:8000/recognize"
+
+# API-ключ
+API_KEY = "your_secret_api_key"
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "output_images"  # Папка с исходными изображениями
-PROCESSED_LISTS_DIR = "processed_lists_docker"  # Папка для сохранения результатов
+INPUT_IMAGES_DIR = "output_images"
+PROCESSED_LISTS_DIR = "processed_lists_docker"
 
 
 class RequestStats:
@@ -55,8 +58,11 @@ def encode_image_to_base64(image_path):
 def send_image_to_server(image_base64):
     payload = {"image_base64": image_base64}
 
+    # Заголовки с API-ключом
+    headers = {"Authorization": API_KEY}
+
     try:
-        response = requests.post(SERVER_URL, json=payload, timeout=10)
+        response = requests.post(SERVER_URL, json=payload, headers=headers, timeout=10)
 
         if response.status_code == 200:
             stats.add_success()

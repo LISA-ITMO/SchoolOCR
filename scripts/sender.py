@@ -6,7 +6,10 @@ import json
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "output_images/page_53.jpg"
+IMAGE_PATH = "./scripts/output_images/page_1.jpg"
+
+# API-ключ
+API_KEY = "your api key"
 
 # Функция для кодирования изображения в base64
 def encode_image_to_base64(image_path):
@@ -18,8 +21,11 @@ def send_image_to_server(image_base64):
     # Формируем JSON-тело запроса
     payload = {"image_base64": image_base64}
 
+    # Заголовки с API-ключом
+    headers = {"Authorization": API_KEY}
+
     # Отправляем POST-запрос на сервер
-    response = requests.post(SERVER_URL, json=payload)
+    response = requests.post(SERVER_URL, json=payload, headers=headers)
 
     # Проверяем статус ответа
     if response.status_code == 200:

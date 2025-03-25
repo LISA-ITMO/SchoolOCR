@@ -185,3 +185,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+api_keys.json
