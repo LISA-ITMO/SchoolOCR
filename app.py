@@ -69,7 +69,7 @@ def recognize_hat(region_img):
 def parse_hat_text(text):
     # Регулярное выражение для извлечения предмета, класса и варианта
     pattern = re.compile(
-        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*([^.]*)\s*(\d+)",
+        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*[^.]*\s*([^\d]*)\s*(\d+)",
         re.IGNORECASE
     )
     match = pattern.search(text)
@@ -78,7 +78,7 @@ def parse_hat_text(text):
         grade = match.group(2)
         if '&' in grade:
             grade = grade.replace('&', '8')
-        variant = match.group(3)
+        variant = match.group(4)
         return subject, grade, variant
 
     return None, None, None
