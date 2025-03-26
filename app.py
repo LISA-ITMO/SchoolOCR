@@ -48,6 +48,18 @@ class ImageRequest(BaseModel):
     image_base64: str
 
 
+def resize_to_target(image, target_width=2480, target_height=3505):
+    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4)
+
+
+def decode_image(image_data):
+    image_np = np.frombuffer(image_data, dtype=np.uint8)
+    image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("Неверный формат изображения")
+    return resize_to_target(image)
+
+
 # Извлечение региона из изображения
 def extract_region(image, coords):
     x1, y1, x2, y2 = coords["x1"], coords["y1"], coords["x2"], coords["y2"]
@@ -126,8 +138,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
     try:
         # Декодируем изображение из base64
         image_data = base64.b64decode(request.image_base64)
-        image_np = np.frombuffer(image_data, dtype=np.uint8)
-        image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+        image = decode_image(image_data)
 
         if image is None:
             errors.append("Ошибка обработки изображения")

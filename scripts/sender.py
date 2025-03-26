@@ -3,10 +3,10 @@ import base64
 import json
 
 # Адрес сервера
-SERVER_URL = "http://158.160.111.204:8000/recognize"
+SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "./scripts/output_images/page_53.jpg"
+IMAGE_PATH = "./scripts/help_imgs/rewqrweq.jpg"
 
 # API-ключ
 API_KEY = "api key"
