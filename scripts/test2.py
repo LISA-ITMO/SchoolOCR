@@ -9,7 +9,7 @@ from services.table_recognition import recognize_table  # Импортируем
 
 
 # Загрузка конфига
-def load_config(config_path="config.json"):
+def load_config(config_path="../config.json"):
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -49,7 +49,7 @@ def find_closest_key(subject, config):
 
 
 # Основной скрипт
-def main(image_path, config_path="config.json"):
+def main(image_path, config_path="../config.json"):
     # Загрузка конфига
     config = load_config(config_path)
 
@@ -59,8 +59,8 @@ def main(image_path, config_path="config.json"):
         raise FileNotFoundError(f"Изображение по пути {image_path} не найдено.")
 
     # Загрузка моделей MNIST
-    mnist_model = tf.keras.models.load_model("mnist_model.keras")  # Стандартная модель
-    extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")  # Расширенная модель
+    mnist_model = tf.keras.models.load_model("../mnist_model.keras")  # Стандартная модель
+    extended_model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")  # Расширенная модель
     print("Модели успешно загружены.")
 
     # Извлечение шапки
@@ -118,4 +118,4 @@ def main(image_path, config_path="config.json"):
 
 
 if __name__ == "__main__":
-    main("russian 8/РУС 8 кл 1 в 39_page_6.jpg")
+    main("help_imgs/math page.jpg")
