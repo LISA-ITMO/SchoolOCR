@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
 
+
 def center_image(image, size=(28, 28), digit_size=(20, 20)):
     """
     Центрирует изображение цифры и изменяет его размер до указанного.
+    Выбирает контур, ближайший к центру изображения.
     """
     # Находим контуры на изображении
     contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -11,12 +13,42 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
         # Если контуры не найдены, просто изменяем размер изображения
         return cv2.resize(image, size, interpolation=cv2.INTER_AREA)
 
-    # Находим наибольший контур (предполагаем, что это цифра)
-    contour = max(contours, key=cv2.contourArea)
-    x, y, w, h = cv2.boundingRect(contour)
+    # Вычисляем центр изображения
+    height, width = image.shape
+    image_center = np.array([width / 2, height / 2])
+
+    # Находим контур, ближайший к центру
+    min_distance = float('inf')
+    best_contour = None
+
+    for contour in contours:
+        # Получаем ограничивающий прямоугольник для контура
+        x, y, w, h = cv2.boundingRect(contour)
+        # Вычисляем центр контура
+        contour_center = np.array([x + w / 2, y + h / 2])
+        # Вычисляем расстояние до центра изображения
+        distance = np.linalg.norm(contour_center - image_center)
+
+        if distance < min_distance:
+            min_distance = distance
+            best_contour = contour
+
+    # Если не нашли подходящий контур (хотя такого быть не должно)
+    if best_contour is None:
+        return cv2.resize(image, size, interpolation=cv2.INTER_AREA)
+
+    # Получаем ограничивающий прямоугольник для выбранного контура
+    x, y, w, h = cv2.boundingRect(best_contour)
 
     # Вырезаем область с цифрой
     digit_roi = image[y:y + h, x:x + w]
+
+    # Применяем дилатацию к вырезанной цифре
+    digit_roi = cv2.dilate(
+        digit_roi,
+        kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)),
+        iterations=2
+    )
 
     # Сохраняем соотношение сторон
     aspect_ratio = w / h
@@ -57,12 +89,15 @@ def preprocess_image(image, output_size=(28, 28), digit_size=(20, 20)):
         # Бинаризация изображения
         _, binary = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-        # Морфологическое закрытие для устранения шума
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel, iterations=1)
+        # ДИЛАТАЦИЯ (расширение контуров цифры)
+        dilated = cv2.dilate(
+            binary,
+            kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            iterations=1
+        )
 
         # Центрируем изображение
-        centered = center_image(closed, size=output_size, digit_size=digit_size)
+        centered = center_image(dilated, size=output_size, digit_size=digit_size)
 
         # Нормализуем изображение
         normalized = centered / 255.0

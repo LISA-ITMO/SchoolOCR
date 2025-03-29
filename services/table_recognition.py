@@ -68,6 +68,7 @@ def recognize_table(image, model, config):
         img_orientation_corrector = ImageOrientationCorrector()
         # Загрузка и коррекция ориентации изображения
         dilated = img_orientation_corrector(dilated)
+        image = img_orientation_corrector(image)
         html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
         filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 

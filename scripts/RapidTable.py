@@ -2,16 +2,16 @@ import tensorflow as tf
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from lineless_table_rec.utils_table_recover import plot_rec_box_with_logic_info
+from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
 from services.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = 'help_imgs/img_14.png'
+IMG_PATH = 'debug_tables/table_page_7.jpg'
 
 # Загрузка модели MNIST
-model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
+model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
 print("Модель успешно загружена.")
 
 # Инициализация движка для распознавания таблиц
@@ -36,9 +36,9 @@ dilated = cv2.dilate(binary, kernel, iterations=2)  # Дилатация для 
 eroded = cv2.erode(dilated, kernel, iterations=2)
 
 # Показываем изображение с контурами
-cv2.imshow("Контуры цифр", gray)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# cv2.imshow("Контуры цифр", gray)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
 
 # Распознавание таблицы на обработанном изображении
 html, elasp, polygons, logic_points, ocr_res = table_engine(gray, need_ocr=False)
