@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 import json
 import re
+import fitz  # PyMuPDF
 from difflib import get_close_matches
 import pytesseract
 from services.code_recognition import recognize_code
@@ -15,17 +16,16 @@ from services.preprocess_general import preprocess_general
 
 app = FastAPI()
 
-# Добавьте этот блок для настройки CORS
+# Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Разрешает все домены
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешает все методы
-    allow_headers=["*"],  # Разрешает все заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Загрузка конфига
-
+# Загрузка конфигурации
 API_KEYS_PATH = "api_keys.json"
 try:
     with open(API_KEYS_PATH, "r", encoding="utf-8") as f:
@@ -40,46 +40,70 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     config = json.load(f)
 
 # Загрузка моделей MNIST
-mnist_model = tf.keras.models.load_model("mnist_model.keras")  # Стандартная модель
-extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")  # Расширенная модель
+mnist_model = tf.keras.models.load_model("mnist_model.keras")
+extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
 
 
 class ImageRequest(BaseModel):
     image_base64: str
 
 
-def resize_to_target(image, target_width=2480, target_height=3505):
-    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4)
+def is_pdf(file_data):
+    """Проверяет, является ли файл PDF"""
+    return len(file_data) > 4 and file_data[:4] == b'%PDF'
+
+
+def pdf_to_image(pdf_data):
+    """Конвертирует PDF в изображение с DPI 300"""
+    doc = fitz.open(stream=pdf_data, filetype="pdf")
+    page = doc.load_page(0)
+
+    # Устанавливаем DPI 300
+    zoom = 300 / 72
+    mat = fitz.Matrix(zoom, zoom)
+
+    pix = page.get_pixmap(matrix=mat, alpha=False)
+    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape((pix.height, pix.width, 3))
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    return img
 
 
 def decode_image(image_data):
-    image_np = np.frombuffer(image_data, dtype=np.uint8)
-    image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
-    if image is None:
-        raise ValueError("Неверный формат изображения")
-    return resize_to_target(image)
+    """Обрабатывает изображение или PDF"""
+    if is_pdf(image_data):
+        print("Обнаружен PDF файл. Конвертируем...")
+        return pdf_to_image(image_data)
+    else:
+        print("Обнаружено изображение. Обрабатываем...")
+        image_np = np.frombuffer(image_data, dtype=np.uint8)
+        image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+        if image is None:
+            raise ValueError("Неверный формат изображения")
+        return resize_to_target(image)
 
 
-# Извлечение региона из изображения
+def resize_to_target(image, target_width=2480, target_height=3505):
+    """Изменяет размер изображения до целевого"""
+    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4)
+
+
 def extract_region(image, coords):
+    """Извлекает регион изображения по координатам"""
     x1, y1, x2, y2 = coords["x1"], coords["y1"], coords["x2"], coords["y2"]
     return image[y1:y2, x1:x2]
 
 
-# Распознавание текста из шапки
 def recognize_hat(region_img):
+    """Распознает текст в шапке документа"""
     processed_img = preprocess_general(region_img)
-
     whitelist = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
     custom_config = f'-c tessedit_char_whitelist="{whitelist}" --psm 6'
-
     text = pytesseract.image_to_string(processed_img, lang='rus', config=custom_config).strip()
     return text
 
 
-# Определение предмета и класса из текста шапки
 def parse_hat_text(text):
-    # Регулярное выражение для извлечения предмета, класса и варианта
+    """Извлекает предмет, класс и вариант из текста шапки"""
     pattern = re.compile(
         r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*[^.]*\s*([^\d]*)\s*(\d+)",
         re.IGNORECASE
@@ -92,150 +116,102 @@ def parse_hat_text(text):
             grade = grade.replace('&', '8')
         variant = match.group(4)
         return subject, grade, variant
-
     return None, None, None
 
 
-# Поиск наиболее схожего ключа в конфиге
 def find_closest_key(subject, config):
-    # Получаем список всех ключей в конфиге
+    """Находит наиболее подходящий ключ в конфиге"""
     keys = [key for key in config.keys() if key not in ["regions"]]
-
-    # Ищем наиболее схожий ключ по предмету
     closest_matches = get_close_matches(subject, keys, n=1, cutoff=0.6)
     return closest_matches[0] if closest_matches else None
 
 
-# Сопоставление распознанных цифр с номерами заданий
-def map_digits_to_tasks(recognized_digits, task_numbers):
-    # Разделяем task_numbers на отдельные номера заданий
-    tasks = task_numbers.split()
-    # Создаем словарь для сопоставления
-    task_dict = {}
-    for i, digit in enumerate(recognized_digits):
-        if i < len(tasks):
-            task_dict[tasks[i]] = digit
-        else:
-            task_dict[f"extra_{i}"] = digit  # Если цифр больше, чем заданий
-    return task_dict
-
-
-# Проверка API-ключа
 def validate_api_key(api_key: str):
+    """Проверяет валидность API ключа"""
     if not api_key or api_key not in API_KEYS:
         raise HTTPException(status_code=401, detail="Invalid API Key")
 
 
-# Ручка для обработки изображения
 @app.post("/recognize")
 def recognize_image(request: ImageRequest, authorization: str = Header(None)):
+    """Основной endpoint для распознавания"""
     errors = []
-    print(1)
-    # Проверяем API-ключ
     validate_api_key(authorization)
-    print(2)
 
     try:
-        # Декодируем изображение из base64
+        # Декодируем изображение
         image_data = base64.b64decode(request.image_base64)
         image = decode_image(image_data)
-
-        if image is None:
-            errors.append("Ошибка обработки изображения")
-            raise HTTPException(status_code=400, detail="Ошибка обработки изображения")
 
         # Извлечение шапки
         hat_region = extract_region(image, config["regions"]["hat"])
         hat_text = recognize_hat(hat_region)
         print(f"Распознанный текст шапки: {hat_text}")
 
-        # Определение предмета, класса и варианта
+        # Парсинг данных
         subject, grade, variant = parse_hat_text(hat_text)
         if not subject or not grade or not variant:
-            errors.append("Не удалось определить предмет, класс или вариант из шапки")
-            raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант из шапки")
+            raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант")
 
-        # Формируем ключ для поиска в конфиге
+        # Поиск конфигурации
         key = f"{subject} {grade}"
-        print(f"Ищем ключ в конфиге: {key}")
-
-        # Поиск ключа в конфиге
         if key not in config:
-            print(f"Ключ '{key}' не найден в конфиге. Поиск наиболее схожего ключа...")
             closest_key = find_closest_key(subject, config)
-            if closest_key:
-                print(f"Найден наиболее схожий ключ: {closest_key}")
-                key = closest_key
-            else:
-                errors.append("Не удалось найти подходящий ключ в конфиге")
-                raise HTTPException(status_code=400, detail="Не удалось найти подходящий ключ в конфиге")
+            if not closest_key:
+                raise HTTPException(status_code=400, detail="Не найдена конфигурация для предмета и класса")
+            key = closest_key
 
-        # Извлечение кода участника
+        # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])
-        code = recognize_code(code_region, mnist_model)  # Используем стандартную модель
-        print(f"Распознанный код участника: {code}")
-
-        if not code:
-            errors.append("Не удалось распознать код участника")
-
-        # Извлечение таблицы
-        table_coords = config[key]["table"]
-        table_region = extract_region(image, table_coords)
+        code = recognize_code(code_region, mnist_model)
 
         # Распознавание таблицы
+        table_region = extract_region(image, config[key]["table"])
         recognized_digits = recognize_table(table_region, extended_model, config[key])
 
+        # Формирование ответа
         task_dict = {}
         warnings = []
         total_score = 0
 
-        if not recognized_digits:
-            errors.append("Не удалось распознать таблицу")
-        else:
-            recognized_digits = [(int(digit), round(float(probability), 2))
-                                 for digit, probability in recognized_digits]
-
+        if recognized_digits:
             task_numbers = config[key].get("task_numbers", "").split()
-            low_confidence_tasks = []
+            low_confidence = []
 
             for i, (digit, prob) in enumerate(recognized_digits):
+                digit = int(digit)
+                prob = round(float(prob), 2)
+
                 if i < len(task_numbers):
                     task_name = task_numbers[i]
-                    task_dict[task_name] = (digit, prob)
+                    task_dict[task_name] = {"score": digit, "confidence": prob}
 
-                    # Проверяем вероятность и добавляем номер задания, если < 0.6
                     if prob < 0.6:
-                        low_confidence_tasks.append(task_name)
+                        low_confidence.append(task_name)
 
-                    # Суммируем баллы, исключая задания 10 и 11
                     if digit not in [10, 11]:
                         total_score += digit
-                else:
-                    task_dict[f"extra_{i}"] = (digit, prob)
 
-            # Добавляем предупреждение с номерами заданий
-            if low_confidence_tasks:
-                warnings.append(f"Низкая вероятность распознавания для заданий: {', '.join(low_confidence_tasks)}")
+            if low_confidence:
+                warnings.append(f"Низкая уверенность в заданиях: {', '.join(low_confidence)}")
 
-        response = {
+        return {
             "subject": subject,
             "grade": grade,
             "variant": variant,
             "participant_code": code,
             "total_score": total_score,
-            "scores": task_dict,
-            "errors": errors if errors else None,
-            "warnings": warnings if warnings else None
+            "tasks": task_dict,
+            "warnings": warnings if warnings else None,
+            "errors": errors if errors else None
         }
 
-        return response
-
+    except HTTPException:
+        raise
     except Exception as e:
-        errors.append(str(e))
-        raise HTTPException(status_code=500, detail={"errors": errors})
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-# Запуск сервера
 if __name__ == "__main__":
     import uvicorn
 
