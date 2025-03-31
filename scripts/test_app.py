@@ -5,10 +5,10 @@ import json
 from datetime import datetime
 
 # Адрес сервера
-SERVER_URL = "http://158.160.111.204:8000/recognize"
+SERVER_URL = "http://158.160.57.65:8000/recognize"
 
 # API-ключ
-API_KEY = "your_secret_api_key"
+API_KEY = ""
 
 # Пути к папкам
 INPUT_IMAGES_DIR = "output_images"
