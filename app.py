@@ -174,7 +174,9 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         warnings = []
         total_score = 0
 
-        if recognized_digits:
+        if not recognized_digits:
+            errors.append("Не удалось распознать таблицу")
+        else:
             task_numbers = config[key].get("task_numbers", "").split()
             low_confidence = []
 
