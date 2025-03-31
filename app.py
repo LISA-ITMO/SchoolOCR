@@ -184,7 +184,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
                 if i < len(task_numbers):
                     task_name = task_numbers[i]
-                    task_dict[task_name] = {"score": digit, "confidence": prob}
+                    task_dict[task_name] = (digit, prob)
 
                     if prob < 0.6:
                         low_confidence.append(task_name)
@@ -201,9 +201,9 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             "variant": variant,
             "participant_code": code,
             "total_score": total_score,
-            "tasks": task_dict,
-            "warnings": warnings if warnings else None,
-            "errors": errors if errors else None
+            "scores": task_dict,
+            "errors": errors if errors else None,
+            "warnings": warnings if warnings else None
         }
 
     except HTTPException:

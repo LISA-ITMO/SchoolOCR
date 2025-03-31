@@ -3,10 +3,10 @@ import base64
 import json
 
 # Адрес сервера
-SERVER_URL = "http://158.160.111.204:8000/recognize"
+SERVER_URL = "http://158.160.57.65:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "help_imgs/math page.jpg"
+IMAGE_PATH = "Сканы титульников/МАТ 5кл 2в 40-1.pdf"
 
 # API-ключ
 API_KEY = ""
