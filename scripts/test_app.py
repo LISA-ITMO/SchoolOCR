@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 # Адрес сервера
-SERVER_URL = "http://158.160.57.65:8000/recognize"
+SERVER_URL = "http://localhost:8000/recognize"
 
 # API-ключ
 API_KEY = ""

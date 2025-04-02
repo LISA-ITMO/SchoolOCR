@@ -48,6 +48,7 @@ def recognize_table(image, model, config):
     # Морфологические операции для соединения пунктирных линий
     kernel = np.ones((3, 3), np.uint8)  # Размер ядра можно настроить
     dilated = cv2.dilate(preprocessed, kernel, iterations=2)  # Дилатация для соединения линий
+    eroded = cv2.erode(dilated, kernel, iterations=1)
 
     # Распознавание таблицы
     html, elasp, polygons, logic_points, ocr_res = table_engine(image, need_ocr=False)
@@ -57,22 +58,22 @@ def recognize_table(image, model, config):
 
     # Если количество ячеек всё ещё не совпадает, пробуем другие методы
     if len(filtered_cells) != config["total_cells"]:
+        img_orientation_corrector = ImageOrientationCorrector()
+        preprocessed = img_orientation_corrector(image)
+        html, elasp, polygons, logic_points, ocr_res = table_engine(image, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+    # PREPROCESSED
+    if len(filtered_cells) != config["total_cells"]:
         html, elasp, polygons, logic_points, ocr_res = table_engine(preprocessed, need_ocr=False)
         filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
     if len(filtered_cells) != config["total_cells"]:
-        html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
-        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
-
-    if len(filtered_cells) != config["total_cells"]:
         img_orientation_corrector = ImageOrientationCorrector()
-        # Загрузка и коррекция ориентации изображения
-        dilated = img_orientation_corrector(dilated)
-        image = img_orientation_corrector(image)
-        html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
+        preprocessed = img_orientation_corrector(preprocessed)
+        html, elasp, polygons, logic_points, ocr_res = table_engine(preprocessed, need_ocr=False)
         filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
 
-        # Если количество ячеек не совпадает и таблица имеет 2 строки
     if len(filtered_cells) != config["total_cells"] and config["rows"] == 2:
         # Находим нижнюю координату всех полигонов второй строки
         _, _, polygons, logic_points, _ = table_engine(preprocessed, need_ocr=False)
@@ -106,6 +107,69 @@ def recognize_table(image, model, config):
 
         # Соединяем результаты
         filtered_cells = filtered_cells_upper[1:] + filtered_cells_lower[1:-2]
+
+    # DILATED
+    if len(filtered_cells) != config["total_cells"]:
+        html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+    if len(filtered_cells) != config["total_cells"]:
+        img_orientation_corrector = ImageOrientationCorrector()
+        # Загрузка и коррекция ориентации изображения
+        dilated = img_orientation_corrector(dilated)
+        image = img_orientation_corrector(image)
+        html, elasp, polygons, logic_points, ocr_res = table_engine(dilated, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+        # Если количество ячеек не совпадает и таблица имеет 2 строки
+    if len(filtered_cells) != config["total_cells"] and config["rows"] == 2:
+        # Находим нижнюю координату всех полигонов второй строки
+        _, _, polygons, logic_points, _ = table_engine(dilated, need_ocr=False)
+        second_row_cells = [polygons[i] for i, logic in enumerate(logic_points) if logic[0] == 1 or logic[1] == 1]
+        bottom_coord = max([polygon[3] for polygon in second_row_cells])  # polygon[3] — это y2 (нижняя координата)
+        # print(second_row_cells)
+        # print(bottom_coord)
+
+        # Делаем отступ в 3 пикселя и обрезаем изображение на две части
+        split_y = int(bottom_coord) + 3
+        upper_part = dilated[:split_y, :]  # Верхняя часть изображения
+        lower_part = dilated[split_y:, :]  # Нижняя часть изображения
+
+        # cv2.imshow("upper", upper_part)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        #
+        # cv2.imshow("lower", lower_part)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        # Обрабатываем каждую часть отдельно
+        _, _, polygons_upper, logic_points_upper, _ = table_engine(upper_part, need_ocr=False)
+        _, _, polygons_lower, logic_points_lower, _ = table_engine(lower_part, need_ocr=False)
+
+        # Фильтруем ячейки для каждой части
+        filtered_cells_upper = [polygons_upper[i] for i, logic in enumerate(logic_points_upper) if
+                                logic[0] == 1 and logic[1] == 1]
+
+
+        filtered_cells_lower = [polygons_lower[i] for i, logic in enumerate(logic_points_lower) if
+                                logic[0] == 1 and logic[1] == 1]
+
+        # Соединяем результаты
+        filtered_cells = filtered_cells_upper[1:] + filtered_cells_lower[1:-2]
+
+    #ERODE
+    if len(filtered_cells) != config["total_cells"]:
+        html, elasp, polygons, logic_points, ocr_res = table_engine(eroded, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
+    if len(filtered_cells) != config["total_cells"]:
+        img_orientation_corrector = ImageOrientationCorrector()
+        # Загрузка и коррекция ориентации изображения
+        eroded = img_orientation_corrector(eroded)
+        html, elasp, polygons, logic_points, ocr_res = table_engine(eroded, need_ocr=False)
+        filtered_cells = filter_cells_by_logic(logic_points, polygons, config)
+
 
     if len(filtered_cells) != config["total_cells"]:
         os.makedirs("./bad_tables", exist_ok=True)

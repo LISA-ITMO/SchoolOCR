@@ -8,7 +8,7 @@ from wired_table_rec import WiredTableRecognition
 from services.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = 'debug_tables/table_page_7.jpg'
+IMG_PATH = 'debug_tables/table_rus.png'
 
 # Загрузка модели MNIST
 model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")

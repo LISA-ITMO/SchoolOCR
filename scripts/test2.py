@@ -174,4 +174,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("output_images/page_1.jpg")
+    main("Сканы титульников/ИСТ 5 кл 1 в 40-15.pdf")
