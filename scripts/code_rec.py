@@ -8,7 +8,7 @@ from wired_table_rec.utils import ImageOrientationCorrector
 def process_and_recognize_digits(image_path):
     # Загрузка модели MNIST
     print("Загрузка модели MNIST...")
-    model = tf.keras.models.load_model("mnist_model.keras")
+    model = tf.keras.models.load_model("../mnist_model.keras")
     print("Модель успешно загружена.")
 
     # Загрузка изображения
@@ -41,14 +41,13 @@ def process_and_recognize_digits(image_path):
     print("Применение морфологических операций...")
     kernel = np.ones((3, 3), np.uint8)
     dilated = cv2.dilate(binary, kernel, iterations=2)
-    eroded = cv2.erode(dilated, kernel, iterations=2)
-    cv2.imshow("После морфологических операций", eroded)
+    cv2.imshow("После морфологических операций", dilated)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
     # Поиск контуров и удаление внешнего бокса
     print("Поиск контуров...")
-    contours, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     largest_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(largest_contour)
     print(f"Найден внешний контур с координатами: x={x}, y={y}, w={w}, h={h}")
@@ -156,6 +155,6 @@ def process_and_recognize_digits(image_path):
 
 # Использование
 if __name__ == "__main__":
-    image_path = "cropped_code/page_1.jpg"
+    image_path = "help_imgs/img_15.png"
     number = process_and_recognize_digits(image_path)
     print(f"Распознанное число: {number}")

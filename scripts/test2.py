@@ -174,4 +174,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("help_imgs/math page.jpg")
+    main("output_images/page_1.jpg")

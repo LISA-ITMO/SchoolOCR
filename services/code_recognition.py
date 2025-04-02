@@ -25,10 +25,9 @@ def recognize_code(image, model):
     _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
     kernel = np.ones((3, 3), np.uint8)
     dilated = cv2.dilate(binary, kernel, iterations=2)
-    eroded = cv2.erode(dilated, kernel, iterations=2)
 
     # 3. Поиск контуров и удаление внешнего бокса
-    contours, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     largest_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(largest_contour)
 
