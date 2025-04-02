@@ -82,7 +82,6 @@ def recognize_code(image, model):
         if input_data is not None:
             pred = model.predict(input_data)
             digit = np.argmax(pred)
-            prob = np.max(pred)
             result_number += str(digit)
 
     return result_number

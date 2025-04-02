@@ -6,7 +6,7 @@ import json
 SERVER_URL = "http://158.160.57.65:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "output_images/page_2.jpg"
+IMAGE_PATH = "Сканы титульников/ИСТ 5 кл 1 в 40-17.pdf"
 
 # API-ключ
 API_KEY = ""

@@ -163,7 +163,11 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
         # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])
-        code = recognize_code(code_region, mnist_model)
+        code = None
+        try:
+            code = recognize_code(code_region, mnist_model)
+        except:
+            errors.append("Не удалось распознать код участника")
 
         # Распознавание таблицы
         table_region = extract_region(image, config[key]["table"])
