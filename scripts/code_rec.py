@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from services.mnist_preprocess_code import preprocess_image  # Импортируем новую функцию препроцессинга
+from utils.mnist_preprocess_code import preprocess_image  # Импортируем новую функцию препроцессинга
 from wired_table_rec.utils import ImageOrientationCorrector
 
 def process_and_recognize_digits(image_path):
@@ -155,6 +155,6 @@ def process_and_recognize_digits(image_path):
 
 # Использование
 if __name__ == "__main__":
-    image_path = "help_imgs/img_15.png"
+    image_path = "cropped_code/page_3.jpg"
     number = process_and_recognize_digits(image_path)
     print(f"Распознанное число: {number}")

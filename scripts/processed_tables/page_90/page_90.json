@@ -1,5 +1,5 @@
 {
-    "image_path": "./cropped_tables\\page_90.jpg",
+    "image_path": "cropped_tables\\page_90.jpg",
     "total_cells": 13,
     "cells": [
         {
@@ -10,8 +10,8 @@
                 405,
                 287
             ],
-            "content": 1,
-            "probability": 0.9366070628166199
+            "content": 11,
+            "probability": 0.9999995231628418
         },
         {
             "index": 19,
@@ -22,7 +22,7 @@
                 287
             ],
             "content": 0,
-            "probability": 0.9690699577331543
+            "probability": 0.9999774694442749
         },
         {
             "index": 20,
@@ -32,8 +32,8 @@
                 617,
                 285
             ],
-            "content": 8,
-            "probability": 0.432521253824234
+            "content": 11,
+            "probability": 0.9999628067016602
         },
         {
             "index": 21,
@@ -44,7 +44,7 @@
                 285
             ],
             "content": 1,
-            "probability": 0.9942281246185303
+            "probability": 0.9958975315093994
         },
         {
             "index": 22,
@@ -55,7 +55,7 @@
                 284
             ],
             "content": 1,
-            "probability": 0.9430553317070007
+            "probability": 0.9980925917625427
         },
         {
             "index": 23,
@@ -66,7 +66,7 @@
                 284
             ],
             "content": 0,
-            "probability": 0.995808482170105
+            "probability": 0.9999971389770508
         },
         {
             "index": 24,
@@ -76,8 +76,8 @@
                 1044,
                 284
             ],
-            "content": 4,
-            "probability": 0.9787546992301941
+            "content": 11,
+            "probability": 0.9999104738235474
         },
         {
             "index": 25,
@@ -88,7 +88,7 @@
                 282
             ],
             "content": 1,
-            "probability": 0.9932897686958313
+            "probability": 0.9992270469665527
         },
         {
             "index": 26,
@@ -99,7 +99,7 @@
                 282
             ],
             "content": 1,
-            "probability": 0.9993935823440552
+            "probability": 0.9973637461662292
         },
         {
             "index": 27,
@@ -110,7 +110,7 @@
                 282
             ],
             "content": 1,
-            "probability": 0.9990561604499817
+            "probability": 0.9999260902404785
         },
         {
             "index": 28,
@@ -121,7 +121,7 @@
                 280
             ],
             "content": 1,
-            "probability": 0.9234405755996704
+            "probability": 0.9991100430488586
         },
         {
             "index": 29,
@@ -132,7 +132,7 @@
                 280
             ],
             "content": 1,
-            "probability": 0.9548985362052917
+            "probability": 0.999784529209137
         },
         {
             "index": 30,
@@ -142,8 +142,8 @@
                 1684,
                 279
             ],
-            "content": 8,
-            "probability": 0.3409285545349121
+            "content": 1,
+            "probability": 0.34327954053878784
         }
     ],
     "plot_image_path": "page_90\\table.png"

@@ -7,8 +7,8 @@ import numpy as np
 from difflib import get_close_matches
 import pytesseract
 import fitz  # PyMuPDF
-from services.code_recognition import recognize_code
-from services.table_recognition import recognize_table
+from utils.code_recognition import recognize_code
+from utils.table_recognition import recognize_table
 
 
 def load_config(config_path="../config.json"):
@@ -30,14 +30,20 @@ def recognize_hat(region_img):
 
 
 def parse_hat_text(text):
-    """Извлекает предмет и класс из текста шапки"""
-    pattern = re.compile(r"ВПР\.\s*([А-Яа-я]+\s*[А-Яа-я]*)\s*\.\s*(\d+)\s*класс", re.IGNORECASE)
+    """Извлекает предмет, класс и вариант из текста шапки"""
+    pattern = re.compile(
+        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*[^.]*\s*([^\d]*)\s*(\d+)",
+        re.IGNORECASE
+    )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
         grade = match.group(2)
-        return subject, grade
-    return None, None
+        if '&' in grade:
+            grade = grade.replace('&', '8')
+        variant = match.group(4)
+        return subject, grade, variant
+    return None, None, None
 
 
 def find_closest_key(subject, config):
@@ -126,10 +132,10 @@ def main(file_path, config_path="../config.json"):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        # Парсинг предмета и класса
-        subject, grade = parse_hat_text(hat_text)
-        if not subject or not grade:
-            print("Не удалось определить предмет и класс из шапки.")
+        # Парсинг предмета, класса и варианта
+        subject, grade, variant = parse_hat_text(hat_text)
+        if not subject or not grade or not variant:
+            print("Не удалось определить предмет, класс и вариант из шапки.")
             return
 
         # Поиск в конфиге
@@ -161,8 +167,50 @@ def main(file_path, config_path="../config.json"):
 
         # Сохранение и распознавание таблицы
         table_path = save_table_image(table_region, file_path)
-        recognized_digits = recognize_table(table_region, extended_model, config[key])
-        print(f"Распознанные цифры из таблицы: {recognized_digits}")
+        recognized_digits = recognize_table(table_region, extended_model, config[key], debug=True)
+
+        task_dict = {}
+        warnings = []
+        total_score = 0
+
+        if not recognized_digits:
+            print("Не удалось распознать таблицу")
+        else:
+            task_numbers = config[key].get("task_numbers", "").split()
+            low_confidence = []
+
+            for i, (digit, prob) in enumerate(recognized_digits):
+                digit = int(digit)
+                prob = round(float(prob), 2)
+
+                if i < len(task_numbers):
+                    task_name = task_numbers[i]
+                    task_dict[task_name] = (digit, prob)
+
+                    if prob < 0.6:
+                        low_confidence.append(task_name)
+
+                    if digit not in [10, 11]:  # Исключаем специальные значения
+                        total_score += digit
+
+            if low_confidence:
+                warnings.append(f"Низкая уверенность в заданиях: {', '.join(low_confidence)}")
+
+        # Вывод результатов
+        print("\nРезультаты распознавания:")
+        print(f"Предмет: {subject}")
+        print(f"Класс: {grade}")
+        print(f"Вариант: {variant}")
+        print(f"Код участника: {code}")
+        print(f"Общий балл: {total_score}")
+        print("\nБаллы по заданиям:")
+        for task, (digit, prob) in task_dict.items():
+            print(f"  {task}: {digit} (уверенность: {prob})")
+
+        if warnings:
+            print("\nПредупреждения:")
+            for warning in warnings:
+                print(f"  - {warning}")
 
         cv2.imshow("Таблица", table_region)
         cv2.waitKey(0)
@@ -174,4 +222,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("Сканы титульников/ИСТ 5 кл 1 в 40-15.pdf")
+    main("output_images/page_46.jpg")

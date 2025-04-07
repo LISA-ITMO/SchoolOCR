@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from wired_table_rec import WiredTableRecognition
-from services.mnist_preprocess_cell import preprocess_image
+from utils.mnist_preprocess_cell import preprocess_image
 
 INPUT_DIR = "cropped_tables"
 OUTPUT_DIR = "processed_tables"
@@ -127,7 +127,7 @@ def table_extraction(img_path, model, output_dir):
 
 
 if __name__ == "__main__":
-    model = tf.keras.models.load_model("mnist_model.keras")
+    model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
     print("Модель успешно загружена.")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 

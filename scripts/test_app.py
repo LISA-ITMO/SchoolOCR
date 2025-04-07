@@ -8,7 +8,7 @@ from datetime import datetime
 SERVER_URL = "http://localhost:8000/recognize"
 
 # API-ключ
-API_KEY = ""
+API_KEY = "42d354f4b6e38ff95553137e49f724c9bc429399"
 
 # Пути к папкам
 INPUT_IMAGES_DIR = "output_images"
@@ -21,6 +21,7 @@ class RequestStats:
         self.successful_requests = 0
         self.failed_requests = 0
         self.error_codes = {}
+        self.recognition_errors = 0
         self.start_time = datetime.now()
 
     def add_success(self):
@@ -33,6 +34,9 @@ class RequestStats:
         if status_code:
             self.error_codes[status_code] = self.error_codes.get(status_code, 0) + 1
 
+    def add_recognition_error(self):
+        self.recognition_errors += 1
+
     def print_stats(self):
         duration = datetime.now() - self.start_time
         print("\n=== Статистика обработки ===")
@@ -43,6 +47,8 @@ class RequestStats:
             print("Коды ошибок:")
             for code, count in self.error_codes.items():
                 print(f"  {code}: {count} раз")
+        if self.recognition_errors:
+            print(f"Ошибки распознавания (errors != null): {self.recognition_errors}")
         print(f"Общее время выполнения: {duration.total_seconds():.2f} сек")
         print(f"Среднее время на запрос: {duration.total_seconds() / self.total_requests:.2f} сек")
 
@@ -113,6 +119,13 @@ def main():
         server_response = send_image_to_server(image_base64)
 
         if server_response:
+            # Проверка наличия ошибок в ответе сервера
+            if "errors" in server_response and server_response["errors"]:
+                stats.add_recognition_error()
+                print(f"Возникли ошибки распознавания: {server_response['errors']}")
+            else:
+                print("Ошибок распознавания не обнаружено.")
+
             save_result(image_path, server_response)
             print("Результат успешно сохранен")
         else:

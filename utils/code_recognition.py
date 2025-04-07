@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from wired_table_rec.utils import ImageOrientationCorrector
 
-from services.mnist_preprocess_code import preprocess_image
+from utils.mnist_preprocess_code import preprocess_image
 
 def recognize_code(image, model):
     """

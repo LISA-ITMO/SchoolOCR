@@ -10,9 +10,9 @@ import re
 import fitz  # PyMuPDF
 from difflib import get_close_matches
 import pytesseract
-from services.code_recognition import recognize_code
-from services.table_recognition import recognize_table
-from services.preprocess_general import preprocess_general
+from utils.code_recognition import recognize_code
+from utils.table_recognition import recognize_table
+from utils.preprocess_general import preprocess_general
 
 app = FastAPI()
 
@@ -59,7 +59,7 @@ def pdf_to_image(pdf_data):
     page = doc.load_page(0)
 
     # Устанавливаем DPI 300
-    zoom = 300 / 72
+    zoom = 300 / 72  # 72 - стандартный DPI в PyMuPDF
     mat = fitz.Matrix(zoom, zoom)
 
     pix = page.get_pixmap(matrix=mat, alpha=False)

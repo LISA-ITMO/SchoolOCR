@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
-from services.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
+from utils.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = 'debug_tables/table_rus.png'
+IMG_PATH = './debug_tables/cropped.jpg'
 
 # Загрузка модели MNIST
 model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
