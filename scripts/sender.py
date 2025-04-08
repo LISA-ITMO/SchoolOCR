@@ -6,10 +6,10 @@ import json
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "Сканы титульников/Rus7/page_1.jpg"
+IMAGE_PATH = "scans_jpg/ОБЩ 6 кл 1 в 40/ОБЩ 6 кл 1 в 40_page_40.jpg"
 
 # API-ключ
-API_KEY = "42d354f4b6e38ff95553137e49f724c9bc429399"
+API_KEY = ""
 
 # Функция для кодирования изображения в base64
 def encode_image_to_base64(image_path):

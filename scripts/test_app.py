@@ -8,11 +8,11 @@ from datetime import datetime
 SERVER_URL = "http://localhost:8000/recognize"
 
 # API-ключ
-API_KEY = "42d354f4b6e38ff95553137e49f724c9bc429399"
+API_KEY = ""
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "output_images"
-PROCESSED_LISTS_DIR = "processed_lists_docker"
+INPUT_IMAGES_DIR = "scans_jpg/ИСТ 11кл 2в 40"
+PROCESSED_LISTS_DIR = "processed_lists_docker_history11"
 
 
 class RequestStats:

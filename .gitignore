@@ -13,10 +13,7 @@ scripts/cropped_tables/
 scripts/cropped_hat/
 scripts/russian 8/
 scripts/history/
-scripts/processed_lists_russian8/
-scripts/processed_lists_history/
-scripts/processed_lists_docker/
-
+scripts/processed_lists*
 
 # C extensions
 *.so

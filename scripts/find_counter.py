@@ -3,7 +3,7 @@ import numpy as np
 from utils.preprocess_general import preprocess_general
 
 # Загрузка изображения
-img = cv2.imread('debug_tables/table_page_1.png')
+img = cv2.imread('debug_tables/table_rus_2.png')
 preprocessed = preprocess_general(img)
 
 # Дилатация
@@ -39,4 +39,4 @@ for i, contour in enumerate(contours_sorted):
 
 cv2.destroyAllWindows()
 
-cv2.imwrite('./debug_tables/cropped.jpg', cropped_tables[0])
+cv2.imwrite('./debug_tables/table_page_1.png', cropped_tables[0])

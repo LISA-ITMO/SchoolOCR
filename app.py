@@ -10,6 +10,7 @@ import re
 import fitz  # PyMuPDF
 from difflib import get_close_matches
 import pytesseract
+from ultralytics import YOLO
 from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
 from utils.preprocess_general import preprocess_general
@@ -42,7 +43,7 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
 # Загрузка моделей MNIST
 mnist_model = tf.keras.models.load_model("mnist_model.keras")
 extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
-
+yolo_model = YOLO("cell_detect.pt")
 
 class ImageRequest(BaseModel):
     image_base64: str
@@ -150,11 +151,12 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
         # Парсинг данных
         subject, grade, variant = parse_hat_text(hat_text)
-        if not subject or not grade or not variant:
+        if not subject or not grade:
             raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант")
 
         # Поиск конфигурации
         key = f"{subject} {grade}"
+        print(key)
         if key not in config:
             closest_key = find_closest_key(subject, config)
             if not closest_key:
@@ -171,7 +173,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
         # Распознавание таблицы
         table_region = extract_region(image, config[key]["table"])
-        recognized_digits = recognize_table(table_region, extended_model, config[key])
+        recognized_digits = recognize_table(image, extended_model, yolo_model, config[key])
 
         # Формирование ответа
         task_dict = {}

@@ -40,7 +40,8 @@ COPY app.py .
 COPY config.json .
 COPY *.keras .
 COPY *.h5 .
-COPY services/ ./services/
+COPY *.pt .
+COPY utils/ ./utils/
 
 # Установка Python-зависимостей
 RUN pip install --no-cache-dir -U pip && \

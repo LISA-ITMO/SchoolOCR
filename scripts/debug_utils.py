@@ -9,6 +9,7 @@ import pytesseract
 import fitz  # PyMuPDF
 from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
+from ultralytics import YOLO
 
 
 def load_config(config_path="../config.json"):
@@ -120,6 +121,7 @@ def main(file_path, config_path="../config.json"):
 
         # Загрузка моделей
         mnist_model = tf.keras.models.load_model("../mnist_model.keras")
+        yolo_model = YOLO("../cell_detect.pt")
         extended_model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
         print("Модели успешно загружены.")
 
@@ -167,7 +169,7 @@ def main(file_path, config_path="../config.json"):
 
         # Сохранение и распознавание таблицы
         table_path = save_table_image(table_region, file_path)
-        recognized_digits = recognize_table(table_region, extended_model, config[key], debug=True)
+        recognized_digits = recognize_table(image, extended_model, yolo_model, config[key], debug=True)
 
         task_dict = {}
         warnings = []
@@ -222,4 +224,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("output_images/page_46.jpg")
+    main("russian 8/РУС 8 кл 1 в 39_page_39.jpg")
