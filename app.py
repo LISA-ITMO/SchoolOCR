@@ -152,6 +152,10 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         # Парсинг данных
         subject, grade, variant = parse_hat_text(hat_text)
         if not subject or not grade:
+            hat_region = extract_region(image, config["regions"]["hat_reserve"])
+            hat_text = recognize_hat(hat_region)
+            subject, grade, variant = parse_hat_text(hat_text)
+        if not subject or not grade:
             raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант")
 
         # Поиск конфигурации

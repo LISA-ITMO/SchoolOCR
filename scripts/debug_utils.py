@@ -136,7 +136,15 @@ def main(file_path, config_path="../config.json"):
 
         # Парсинг предмета, класса и варианта
         subject, grade, variant = parse_hat_text(hat_text)
-        if not subject or not grade or not variant:
+        if not subject or not grade:
+            hat_region = extract_region(image, config["regions"]["hat_reserve"])
+            hat_text = recognize_hat(hat_region)
+            subject, grade, variant = parse_hat_text(hat_text)
+            cv2.imshow("Шапка", hat_region)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+        if not subject or not grade:
             print("Не удалось определить предмет, класс и вариант из шапки.")
             return
 
@@ -224,4 +232,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("russian 8/РУС 8 кл 1 в 39_page_39.jpg")
+    main("scans_jpg/БИО 7 кл 2 в 40/БИО 7 кл 2 в 40_page_10.jpg")
