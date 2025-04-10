@@ -5,14 +5,14 @@ import json
 from datetime import datetime
 
 # Адрес сервера
-SERVER_URL = "http://158.160.57.65:8000/recognize"
+SERVER_URL = "http://localhost:8000/recognize"
 
 # API-ключ
 API_KEY = ""
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "scans_jpg/БИО 7 кл 1в 40 стр"
-PROCESSED_LISTS_DIR = "processed_lists_docker_bio7"
+INPUT_IMAGES_DIR = "output_images"
+PROCESSED_LISTS_DIR = "processed_lists_docker"
 
 
 class RequestStats:

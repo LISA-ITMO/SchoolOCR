@@ -24,6 +24,17 @@ def recognize_table(
         filtered_cells = table_rows[1][1:] + table_rows[3][1:-2]
 
     if len(filtered_cells) != config["total_cells"]:
+        i = 0
+        while i < len(filtered_cells) - 1:
+            current_x = filtered_cells[i][0]
+            next_x = filtered_cells[i + 1][0]
+
+            if abs(next_x - current_x) <= 50:
+                filtered_cells.pop(i + 1)
+            else:
+                i += 1
+
+    if len(filtered_cells) != config["total_cells"]:
         print(f"Найдено клеток {len(filtered_cells)}, Ожидалось {config['total_cells']}")
         return None
 

@@ -43,10 +43,16 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
     # Вырезаем область с цифрой
     digit_roi = image[y:y + h, x:x + w]
 
+    digit_roi = cv2.erode(
+        digit_roi,
+        kernel=cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)),
+        iterations=1
+    )
+
     # Применяем дилатацию к вырезанной цифре
     digit_roi = cv2.dilate(
         digit_roi,
-        kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2)),
+        kernel=cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2)),
         iterations=2
     )
 
@@ -70,39 +76,35 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
 
     return centered_image
 
-def preprocess_image(image, output_size=(28, 28), digit_size=(20, 20)):
-    """
-    Предобрабатывает изображение для распознавания MNIST.
-    """
+def preprocess_image(image, output_size=(28, 28), digit_size=(20, 20), crop_pixels=4):
     try:
-        # Проверяем, что изображение не пустое
         if image is None or image.size == 0:
             raise ValueError("Input image is empty or invalid.")
 
-        # Преобразуем изображение в оттенки серого
+        if crop_pixels > 0:
+            h, w = image.shape[:2]
+            if h > 2*crop_pixels and w > 2*crop_pixels:
+                image = image[crop_pixels:h-crop_pixels, crop_pixels:w-crop_pixels]
+            else:
+                print("Предупреждение: изображение слишком маленькое для обрезки")
+
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Применяем CLAHE для улучшения контраста
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         enhanced = clahe.apply(gray)
 
-        # Бинаризация изображения
         _, binary = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-        # ДИЛАТАЦИЯ (расширение контуров цифры)
         dilated = cv2.dilate(
             binary,
-            kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+            kernel=cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)),
             iterations=1
         )
 
-        # Центрируем изображение
         centered = center_image(dilated, size=output_size, digit_size=digit_size)
 
-        # Нормализуем изображение
         normalized = centered / 255.0
 
-        # Изменяем форму для модели
         reshaped = normalized.reshape(1, output_size[0], output_size[1], 1)
 
         return reshaped, centered

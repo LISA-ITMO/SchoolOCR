@@ -113,8 +113,8 @@ def parse_hat_text(text):
     if match:
         subject = match.group(1).lower()
         grade = match.group(2)
-        if '&' in grade:
-            grade = grade.replace('&', '8')
+        if '&' == grade:
+            grade = '8'
         variant = match.group(4)
         return subject, grade, variant
     return None, None, None
@@ -159,6 +159,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант")
 
         # Поиск конфигурации
+        subject = subject.replace(" ", "")
         key = f"{subject} {grade}"
         print(key)
         if key not in config:

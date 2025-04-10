@@ -88,7 +88,7 @@ if __name__ == "__main__":
     model = YOLO("../cell_detect.pt")
 
     # Загрузка изображения
-    image = cv2.imread("./processed_lists_docker_bio7\БИО 7 кл 2 в 40_page_16/БИО 7 кл 2 в 40_page_16.jpg")
+    image = cv2.imread("./processed_lists_docker_rus7\page_15/page_15.jpg")
 
     # Обработка изображения
     rows = extract_table_rows(
@@ -106,11 +106,18 @@ if __name__ == "__main__":
         for row_idx, row in enumerate(rows):
             for cell in row:
                 x1, y1, x2, y2 = map(int, cell)
-                color = (0, 255, 0) if row_idx % 2 == 0 else (0, 0, 255)  # Чередуем цвета
+                color = (0, 255, 0) if row_idx % 2 == 0 else (0, 0, 255)
                 cv2.rectangle(vis_image, (x1, y1), (x2, y2), color, 2)
                 cv2.putText(vis_image, f"{row_idx + 1}", (x1 + 5, y1 + 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
-        cv2.imshow("Detected Table Rows", vis_image)
+        # Масштабирование изображения (например, до ширины 1200 пикселей)
+        scale_percent = 30  # Процент от исходного размера
+        width = int(vis_image.shape[1] * scale_percent / 100)
+        height = int(vis_image.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        resized = cv2.resize(vis_image, dim, interpolation=cv2.INTER_AREA)
+
+        cv2.imshow("Detected Table Rows", resized)
         cv2.waitKey(0)
         cv2.destroyAllWindows()

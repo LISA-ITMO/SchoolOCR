@@ -11,6 +11,7 @@ from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
 from ultralytics import YOLO
 
+IMG_PATH = "processed_lists_docker/page_30/page_30.jpg"
 
 def load_config(config_path="../config.json"):
     """Загружает конфигурационный файл"""
@@ -38,10 +39,10 @@ def parse_hat_text(text):
     )
     match = pattern.search(text)
     if match:
-        subject = match.group(1).lower()
+        subject = match.group(1).lower().strip()
         grade = match.group(2)
-        if '&' in grade:
-            grade = grade.replace('&', '8')
+        if '&' == grade:
+            grade = '8'
         variant = match.group(4)
         return subject, grade, variant
     return None, None, None
@@ -148,6 +149,8 @@ def main(file_path, config_path="../config.json"):
             print("Не удалось определить предмет, класс и вариант из шапки.")
             return
 
+        subject = subject.replace(" ", "")
+        print(subject)
         # Поиск в конфиге
         key = f"{subject} {grade}"
         print(f"Ищем ключ в конфиге: {key}")
@@ -232,4 +235,4 @@ def main(file_path, config_path="../config.json"):
 
 
 if __name__ == "__main__":
-    main("scans_jpg/БИО 7 кл 2 в 40/БИО 7 кл 2 в 40_page_10.jpg")
+    main(IMG_PATH)
