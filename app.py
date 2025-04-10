@@ -205,7 +205,8 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
                 if i < len(task_numbers):
                     task_name = task_numbers[i]
-                    task_dict[task_name] = (digit, prob)
+                    display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
+                    task_dict[task_name] = (display_digit, prob)
 
                     if prob < 0.6:
                         low_confidence.append(task_name)
