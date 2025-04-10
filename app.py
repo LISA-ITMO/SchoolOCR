@@ -14,6 +14,7 @@ from ultralytics import YOLO
 from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
 from utils.preprocess_general import preprocess_general
+from utils.table_rec_noconf import recognize_table_all
 
 app = FastAPI()
 
@@ -100,22 +101,24 @@ def recognize_hat(region_img):
     whitelist = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
     custom_config = f'-c tessedit_char_whitelist="{whitelist}" --psm 6'
     text = pytesseract.image_to_string(processed_img, lang='rus', config=custom_config).strip()
+    text = text.replace("|", "1")
+    text = text.replace("!", "1")
+    text = text.replace("&", "8")
+    text = text.replace('\n', '')
     return text
 
 
 def parse_hat_text(text):
     """Извлекает предмет, класс и вариант из текста шапки"""
     pattern = re.compile(
-        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*[^.]*\s*([^\d]*)\s*(\d+)",
+        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$",
         re.IGNORECASE
     )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
         grade = match.group(2)
-        if '&' == grade:
-            grade = '8'
-        variant = match.group(4)
+        variant = match.group(3)
         return subject, grade, variant
     return None, None, None
 
@@ -137,6 +140,7 @@ def validate_api_key(api_key: str):
 def recognize_image(request: ImageRequest, authorization: str = Header(None)):
     """Основной endpoint для распознавания"""
     errors = []
+    warnings = []
     validate_api_key(authorization)
 
     try:
@@ -162,10 +166,12 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         subject = subject.replace(" ", "")
         key = f"{subject} {grade}"
         print(key)
+        key_found = True
         if key not in config:
             closest_key = find_closest_key(subject, config)
             if not closest_key:
-                raise HTTPException(status_code=400, detail="Не найдена конфигурация для предмета и класса")
+                key_found = False
+                warnings.append("Не найдена существующая конфигурация для таблиц")
             key = closest_key
 
         # Распознавание кода
@@ -176,19 +182,21 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         except:
             errors.append("Не удалось распознать код участника")
 
-        # Распознавание таблицы
-        table_region = extract_region(image, config[key]["table"])
-        recognized_digits = recognize_table(image, extended_model, yolo_model, config[key])
+        recognized_digits = []
+        task_numbers = []
+        if key_found:
+            recognized_digits = recognize_table(image, extended_model, yolo_model, config[key])
+            task_numbers = config[key].get("task_numbers", "").split()
+        if not key_found or not recognized_digits:
+            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model)
 
-        # Формирование ответа
         task_dict = {}
-        warnings = []
         total_score = 0
 
         if not recognized_digits:
             errors.append("Не удалось распознать таблицу")
         else:
-            task_numbers = config[key].get("task_numbers", "").split()
+
             low_confidence = []
 
             for i, (digit, prob) in enumerate(recognized_digits):

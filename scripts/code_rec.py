@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from utils.mnist_preprocess_code import preprocess_image  # Импортируем новую функцию препроцессинга
+from utils.preprocess_general import preprocess_general
 from wired_table_rec.utils import ImageOrientationCorrector
 
 def process_and_recognize_digits(image_path):
@@ -22,25 +23,21 @@ def process_and_recognize_digits(image_path):
     img_orientation_corrector = ImageOrientationCorrector()
     image = img_orientation_corrector(image)
     print("Ориентация изображения скорректирована.")
-
-    # Преобразуем изображение в градации серого
-    print("Преобразование изображения в градации серого...")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("Изображение в градациях серого", gray)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-    # Бинаризация изображения
-    print("Бинаризация изображения...")
-    _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
-    cv2.imshow("Бинаризованное изображение", binary)
+    preprocessed = preprocess_general(image)
+    cv2.imshow("Изображение в градациях серого", preprocessed)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
     # Морфологические операции
     print("Применение морфологических операций...")
-    kernel = np.ones((3, 3), np.uint8)
-    dilated = cv2.dilate(binary, kernel, iterations=2)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    dilated = cv2.dilate(
+        preprocessed,
+        kernel=kernel,
+        iterations=1
+    )
     cv2.imshow("После морфологических операций", dilated)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -155,6 +152,6 @@ def process_and_recognize_digits(image_path):
 
 # Использование
 if __name__ == "__main__":
-    image_path = "cropped_code/page_3.jpg"
+    image_path = "help_imgs/code.jpg"
     number = process_and_recognize_digits(image_path)
     print(f"Распознанное число: {number}")

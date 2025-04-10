@@ -15,7 +15,6 @@ def recognize_table(
 ) -> Optional[List[Tuple[int, float]]]:
 
     table_rows = extract_table_rows(image, model_yolo)
-    print(table_rows)
 
     filtered_cells = []
     if config["rows"] == 1:
@@ -38,7 +37,6 @@ def recognize_table(
         print(f"Найдено клеток {len(filtered_cells)}, Ожидалось {config['total_cells']}")
         return None
 
-    print(filtered_cells)
     results = []
     if debug:
         plt.figure(figsize=(15, 5))

@@ -21,7 +21,6 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
     """
     # Выполняем предсказание
     results = model(image)
-    print(results)
 
     # Обработка результатов
     for result in results:

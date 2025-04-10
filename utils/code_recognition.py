@@ -3,35 +3,23 @@ import numpy as np
 from wired_table_rec.utils import ImageOrientationCorrector
 
 from utils.mnist_preprocess_code import preprocess_image
+from utils.preprocess_general import preprocess_general
 
 def recognize_code(image, model):
-    """
-    Распознает код участника из изображения, используя модель MNIST.
-    Возвращает строку с распознанным кодом.
-
-    :param image: Изображение с кодом участника.
-    :param model: Модель для распознавания цифр.
-    :return: Распознанный код (строка).
-    """
-
     img_orientation_corrector = ImageOrientationCorrector()
     # Загрузка и коррекция ориентации изображения
     image = img_orientation_corrector(image)
+    preprocessed = preprocess_general(image)
 
-    # Преобразуем изображение в градации серого
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # 2. Бинаризация и морфологические операции
-    _, binary = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
-    kernel = np.ones((3, 3), np.uint8)
-    dilated = cv2.dilate(binary, kernel, iterations=2)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    dilated = cv2.dilate(preprocessed, kernel, iterations=2)
 
-    # 3. Поиск контуров и удаление внешнего бокса
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     largest_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(largest_contour)
 
-    # Применяем паддинг 10px
     padding = 10
     x, y = x + padding, y + padding
     w, h = w - 2 * padding, h - 2 * padding

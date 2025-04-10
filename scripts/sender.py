@@ -6,7 +6,7 @@ import json
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "./processed_lists_docker_rus7/page_15/page_15.jpg"
+IMAGE_PATH = "scans_jpg/БИО 7 кл 1в 40 стр/БИО 7 кл 1в 40 стр_page_20.jpg"
 
 # API-ключ
 API_KEY = ""

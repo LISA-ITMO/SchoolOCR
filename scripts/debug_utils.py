@@ -9,9 +9,11 @@ import pytesseract
 import fitz  # PyMuPDF
 from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
+from utils.preprocess_general import preprocess_general
 from ultralytics import YOLO
 
-IMG_PATH = "processed_lists_docker/page_30/page_30.jpg"
+IMG_PATH = "scans_jpg/БИО 7 кл 1в 40 стр/БИО 7 кл 1в 40 стр_page_20.jpg"
+
 
 def load_config(config_path="../config.json"):
     """Загружает конфигурационный файл"""
@@ -27,23 +29,28 @@ def extract_region(image, coords):
 
 def recognize_hat(region_img):
     """Распознает текст в шапке документа"""
-    text = pytesseract.image_to_string(region_img, lang="rus").strip()
+
+    text = pytesseract.image_to_string(region_img, lang='rus').strip()
+    text = text.replace("|", "1")
+    text = text.replace("!", "1")
+    text = text.replace("&", "8")
+    text = text.replace("?", "7")
+    text = text.replace(",", ".")
+    text = text.replace("\n", ".")
     return text
 
 
 def parse_hat_text(text):
     """Извлекает предмет, класс и вариант из текста шапки"""
     pattern = re.compile(
-        r"\.\s*([^.]*)\s*\.\s*(\d+)\s*[^.]*\.\s*[^.]*\s*([^\d]*)\s*(\d+)",
+        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$",
         re.IGNORECASE
     )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower().strip()
         grade = match.group(2)
-        if '&' == grade:
-            grade = '8'
-        variant = match.group(4)
+        variant = match.group(3)
         return subject, grade, variant
     return None, None, None
 
@@ -155,6 +162,7 @@ def main(file_path, config_path="../config.json"):
         key = f"{subject} {grade}"
         print(f"Ищем ключ в конфиге: {key}")
 
+        key_found = True
         if key not in config:
             print(f"Ключ '{key}' не найден в конфиге. Поиск наиболее схожего ключа...")
             closest_key = find_closest_key(subject, config)
@@ -168,6 +176,10 @@ def main(file_path, config_path="../config.json"):
         # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])
         code = recognize_code(code_region, mnist_model)
+        if not code:
+            new_conf = config["regions"]["code"]
+            new_conf["x1"] -= 30
+            code_region = extract_region(image, config["regions"]["code"])
         print(f"Распознанный код участника: {code}")
 
         cv2.imshow("Код участника", code_region)
