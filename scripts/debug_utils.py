@@ -12,7 +12,7 @@ from utils.table_recognition import recognize_table
 from utils.preprocess_general import preprocess_general
 from ultralytics import YOLO
 
-IMG_PATH = "scans_jpg/БИО 7 кл 1в 40 стр/БИО 7 кл 1в 40 стр_page_20.jpg"
+IMG_PATH = "./processed_lists_docker\page_15/page_15.jpg"
 
 
 def load_config(config_path="../config.json"):

@@ -152,6 +152,6 @@ def process_and_recognize_digits(image_path):
 
 # Использование
 if __name__ == "__main__":
-    image_path = "help_imgs/code.jpg"
+    image_path = "cropped_code/page_15.jpg"
     number = process_and_recognize_digits(image_path)
     print(f"Распознанное число: {number}")
