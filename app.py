@@ -120,14 +120,15 @@ def parse_hat_text(text):
         grade = match.group(2)
         variant = match.group(3)
         return subject, grade, variant
+    pattern = re.compile(r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)",
+                         re.IGNORECASE)
+    match = pattern.search(text)
+    if match:
+        subject = match.group(1).lower()
+        grade = match.group(2)
+        variant = match.group(3)
+        return subject, grade, variant
     return None, None, None
-
-
-def find_closest_key(subject, config):
-    """Находит наиболее подходящий ключ в конфиге"""
-    keys = [key for key in config.keys() if key not in ["regions"]]
-    closest_matches = get_close_matches(subject, keys, n=1, cutoff=0.6)
-    return closest_matches[0] if closest_matches else None
 
 
 def validate_api_key(api_key: str):
@@ -168,11 +169,8 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         print(key)
         key_found = True
         if key not in config:
-            closest_key = find_closest_key(subject, config)
-            if not closest_key:
-                key_found = False
-                warnings.append("Не найдена существующая конфигурация для таблиц")
-            key = closest_key
+            key_found = False
+            warnings.append("Не найдена существующая конфигурация для таблиц")
 
         # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])

@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-
 def center_image(image, size=(28, 28), digit_size=(20, 20)):
     """
     Центрирует изображение цифры и изменяет его размер до указанного.

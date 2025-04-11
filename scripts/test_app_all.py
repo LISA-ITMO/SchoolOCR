@@ -8,7 +8,7 @@ from datetime import datetime
 SERVER_URL = "http://localhost:8000/recognize"
 
 # API-ключ
-API_KEY = "42d354f4b6e38ff95553137e49f724c9bc429399"
+API_KEY = ""
 
 # Пути к папкам
 INPUT_ROOT_DIR = "scans_jpg"  # Корневая папка с подпапками для обработки

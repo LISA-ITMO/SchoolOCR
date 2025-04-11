@@ -9,10 +9,10 @@ import pytesseract
 import fitz  # PyMuPDF
 from utils.code_recognition import recognize_code
 from utils.table_recognition import recognize_table
-from utils.preprocess_general import preprocess_general
+from utils.table_rec_noconf import recognize_table_all
 from ultralytics import YOLO
 
-IMG_PATH = "./processed_lists_docker\page_15/page_15.jpg"
+IMG_PATH = "help_imgs/realsample5.pdf"
 
 
 def load_config(config_path="../config.json"):
@@ -48,7 +48,15 @@ def parse_hat_text(text):
     )
     match = pattern.search(text)
     if match:
-        subject = match.group(1).lower().strip()
+        subject = match.group(1).lower()
+        grade = match.group(2)
+        variant = match.group(3)
+        return subject, grade, variant
+    pattern = re.compile(r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)",
+                         re.IGNORECASE)
+    match = pattern.search(text)
+    if match:
+        subject = match.group(1).lower()
         grade = match.group(2)
         variant = match.group(3)
         return subject, grade, variant
@@ -164,14 +172,8 @@ def main(file_path, config_path="../config.json"):
 
         key_found = True
         if key not in config:
-            print(f"Ключ '{key}' не найден в конфиге. Поиск наиболее схожего ключа...")
-            closest_key = find_closest_key(subject, config)
-            if closest_key:
-                print(f"Найден наиболее схожий ключ: {closest_key}")
-                key = closest_key
-            else:
-                print("Не удалось найти подходящий ключ в конфиге.")
-                return
+            print(f"Ключ '{key}' не найден в конфиге")
+            key_found = False
 
         # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])
@@ -186,13 +188,13 @@ def main(file_path, config_path="../config.json"):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        # Обработка таблицы
-        table_coords = config[key]["table"]
-        table_region = extract_region(image, table_coords)
-
-        # Сохранение и распознавание таблицы
-        table_path = save_table_image(table_region, file_path)
-        recognized_digits = recognize_table(image, extended_model, yolo_model, config[key], debug=True)
+        recognized_digits = []
+        task_numbers = []
+        if key_found:
+            recognized_digits = recognize_table(image, extended_model, yolo_model, config[key], debug=True)
+            task_numbers = config[key].get("task_numbers", "").split()
+        if not key_found or not recognized_digits:
+            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model, debug=True)
 
         task_dict = {}
         warnings = []
@@ -236,10 +238,6 @@ def main(file_path, config_path="../config.json"):
             print("\nПредупреждения:")
             for warning in warnings:
                 print(f"  - {warning}")
-
-        cv2.imshow("Таблица", table_region)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
     except Exception as e:
         print(f"Произошла ошибка: {str(e)}")

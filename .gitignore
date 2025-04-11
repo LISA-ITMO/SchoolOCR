@@ -14,6 +14,8 @@ scripts/cropped_hat/
 scripts/russian 8/
 scripts/history/
 scripts/processed_lists*
+*csv
+classified*
 
 # C extensions
 *.so

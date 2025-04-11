@@ -88,7 +88,7 @@ if __name__ == "__main__":
     model = YOLO("../cell_detect.pt")
 
     # Загрузка изображения
-    image = cv2.imread("./processed_lists_docker_rus7\page_15/page_15.jpg")
+    image = cv2.imread("help_imgs/rus_new/page_1.jpg")
 
     # Обработка изображения
     rows = extract_table_rows(

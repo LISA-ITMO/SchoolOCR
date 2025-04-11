@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils.mnist_preprocess_cell import preprocess_image
 from utils.Yolo_cell_rec import extract_table_rows
-
+import os
+import time
 
 def recognize_table(
         image: np.ndarray,
@@ -41,6 +42,13 @@ def recognize_table(
     if debug:
         plt.figure(figsize=(15, 5))
 
+    output_dir_original = "./debug_cells/original"  # оригинальные вырезанные цифры
+    output_dir_processed = "./debug_cells/processed"  # обработанные (под MNIST)
+
+    # Создаём папки, если их нет
+    # os.makedirs(output_dir_original, exist_ok=True)
+    # os.makedirs(output_dir_processed, exist_ok=True)
+
     for i, cell in enumerate(filtered_cells):
         x1, y1, x2, y2 = map(int, cell)
         cell_img = image[y1:y2, x1:x2]
@@ -57,6 +65,17 @@ def recognize_table(
         pred = model_digit.predict(input_data)
         digit, prob = np.argmax(pred), np.max(pred)
         results.append((digit, prob))
+
+        # timestamp = int(time.time() * 1000)
+
+        # Сохранение оригинального изображения (cell_img)
+        # original_filename = os.path.join(output_dir_original, f"cell_{timestamp}_orig.jpg")
+        # cv2.imwrite(original_filename, cell_img)
+        #
+        # # Сохранение обработанного изображения (input_data)
+        # processed_img = (input_data.squeeze() * 255).astype(np.uint8)  # (28, 28) в [0, 255]
+        # processed_filename = os.path.join(output_dir_processed, f"cell_{timestamp}_processed.png")
+        # cv2.imwrite(processed_filename, processed_img)
 
         if debug:
             plt.subplot(2, len(filtered_cells), i + 1)

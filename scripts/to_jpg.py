@@ -17,6 +17,6 @@ def pdf_to_jpg(pdf_path, output_folder, dpi=300):
     pdf_document.close()
 
 
-pdf_path = "Сканы титульников/ВПР русский 7 класс титул.pdf"
-output_folder = f"Сканы титульников/Rus7"
+pdf_path = "help_imgs/realsample.pdf"
+output_folder = f"help_imgs/realsample.png"
 pdf_to_jpg(pdf_path, output_folder, dpi=300)
