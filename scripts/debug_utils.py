@@ -12,7 +12,7 @@ from utils.table_recognition import recognize_table
 from utils.table_rec_noconf import recognize_table_all
 from ultralytics import YOLO
 
-IMG_PATH = "help_imgs/realsample5.pdf"
+IMG_PATH = "help_imgs/rus_new/page_1.jpg"
 
 
 def load_config(config_path="../config.json"):

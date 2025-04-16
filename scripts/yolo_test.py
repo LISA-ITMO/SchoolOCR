@@ -31,7 +31,7 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             return []
 
         # Фильтрация клеток
-        mask = (boxes.conf >= conf_threshold) & (boxes.xyxy[:, 1] >= min_y)
+        mask = (boxes.conf >= conf_threshold) & (boxes.xyxy[:, 1] >= min_y) & (boxes.xyxy[:, 1] <= 3300)
         filtered_boxes = boxes[mask]
 
         if debug:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     model = YOLO("../cell_detect.pt")
 
     # Загрузка изображения
-    image = cv2.imread("help_imgs/rus_new/page_1.jpg")
+    image = cv2.imread("help_imgs/rus_new/page_21.jpg")
 
     # Обработка изображения
     rows = extract_table_rows(

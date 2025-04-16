@@ -14,6 +14,7 @@ scripts/cropped_hat/
 scripts/russian 8/
 scripts/history/
 scripts/processed_lists*
+scripts/help_imgs/*
 *csv
 classified*
 

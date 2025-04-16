@@ -6,7 +6,7 @@ import json
 SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "output_images/page_1.jpg"
+IMAGE_PATH = "help_imgs/rus_new/page_21.jpg"
 
 # API-ключ
 API_KEY = ""

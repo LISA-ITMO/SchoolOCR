@@ -14,20 +14,24 @@ def get_cell_width(cell):
     return cell[2] - cell[0]
 
 def filter_cells(table_rows):
+    if len(table_rows) % 2 != 0:
+        table_rows = [row for row in table_rows if len(row) >= 3]
+        if len(table_rows) % 2 != 0:
+            return None, None
+    for table_row in table_rows:
+        print(table_row)
     if len(table_rows) == 2:
         return table_rows[0][1:-2], table_rows[1][1:-2]
     elif len(table_rows) == 4:
-        if len(table_rows[1]) >= 2:
-            first_cell_width = get_cell_width(table_rows[2][0])
-            second_cell_width = get_cell_width(table_rows[2][1])
+        first_cell_width = get_cell_width(table_rows[2][0])
+        second_cell_width = get_cell_width(table_rows[2][1])
 
-            if first_cell_width - second_cell_width > 30:
-                print("deleting")
-                return table_rows[0][1:] + table_rows[2][1:-2], table_rows[1][1:] + table_rows[3][1:-2]
-            else:
-                return table_rows[0][1:] + table_rows[2][:-2], table_rows[1][1:] + table_rows[3][:-2]
-        else:
+        if first_cell_width - second_cell_width > 30:
+            print("deleting")
             return table_rows[0][1:] + table_rows[2][1:-2], table_rows[1][1:] + table_rows[3][1:-2]
+        else:
+            return table_rows[0][1:] + table_rows[2][:-2], table_rows[1][1:] + table_rows[3][:-2]
+
     elif len(table_rows) == 6:
         return table_rows[1][1:] + table_rows[4][1:-2], table_rows[2][1:] + table_rows[5][1:-2]
 
@@ -43,7 +47,7 @@ def recognize_table_all(
     table_rows = extract_table_rows(image, model_yolo)
     # table_rows = [row for row in table_rows if len(row) >= 3]
 
-    filtered_cells_mnist, filtered_cells_tasks = filter_cells(table_rows)
+    filtered_cells_tasks, filtered_cells_mnist = filter_cells(table_rows)
     if not filtered_cells_mnist or not filtered_cells_tasks:
         return None, None
 
