@@ -50,8 +50,6 @@ def recognize_table_all(
     if not filtered_cells_mnist or not filtered_cells_tasks:
         return None, None
 
-
-    print(filtered_cells_mnist)
     if len(filtered_cells_mnist) != len(filtered_cells_tasks):
         i = 0
         while i < len(filtered_cells_mnist) - 1:

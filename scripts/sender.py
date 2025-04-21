@@ -4,6 +4,7 @@ import json
 
 # Адрес сервера
 SERVER_URL = "http://localhost:8000/recognize"
+# SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
 IMAGE_PATH = "help_imgs/rus_new5/page_8.jpg"

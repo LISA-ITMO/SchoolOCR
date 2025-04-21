@@ -137,7 +137,7 @@ def main(file_path, config_path="../config.json"):
 
         # Загрузка моделей
         mnist_model = tf.keras.models.load_model("../mnist_model.keras")
-        yolo_model = YOLO("../cell_detect.pt")
+        yolo_model = YOLO("../cell_detect_extra.pt")
         extended_model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
         print("Модели успешно загружены.")
 

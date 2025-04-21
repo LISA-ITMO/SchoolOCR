@@ -188,8 +188,8 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             task_numbers = config[key].get("task_numbers", "").split()
         if not key or not recognized_digits:
             task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model)
-        if not key or not recognized_digits:
-            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model_extra)
+            if not recognized_digits:
+                task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model_extra)
 
 
         task_dict = {}

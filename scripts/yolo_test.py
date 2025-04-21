@@ -67,7 +67,6 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             row_groups.append(sorted(current_row, key=lambda b: (b[0] + b[2]) / 2))
 
         if debug:
-            result.show()
             print(f"\nРезультат обработки:")
             print(f"Всего строк: {len(row_groups)}")
             for i, row in enumerate(row_groups, 1):
@@ -85,10 +84,10 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
 # Пример использования
 if __name__ == "__main__":
     # Инициализация модели (один раз при запуске)
-    model = YOLO("../cell_detect.pt")
+    model = YOLO("../cell_detect1.pt")
 
     # Загрузка изображения
-    image = cv2.imread("processed_lists_docker_all/ИСТ 11 кл 1в 40/ИСТ 11 кл 1в 40_page_1/ИСТ 11 кл 1в 40_page_1.jpg")
+    image = cv2.imread("help_imgs/rus_new5/page_8.jpg")
 
     # Обработка изображения
     rows = extract_table_rows(
