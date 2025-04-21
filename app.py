@@ -45,6 +45,7 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
 mnist_model = tf.keras.models.load_model("mnist_model.keras")
 extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
 yolo_model = YOLO("cell_detect.pt")
+yolo_model_extra = YOLO("cell_detect_extra.pt")
 
 class ImageRequest(BaseModel):
     image_base64: str
@@ -161,16 +162,16 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             hat_text = recognize_hat(hat_region)
             subject, grade, variant = parse_hat_text(hat_text)
         if not subject or not grade:
-            raise HTTPException(status_code=400, detail="Не удалось определить предмет, класс или вариант")
+            errors.append("Не удалось определить предмет, класс или вариант")
 
         # Поиск конфигурации
-        subject = subject.replace(" ", "")
-        key = f"{subject} {grade}"
-        print(key)
-        key_found = True
-        if key not in config:
-            key_found = False
-            warnings.append("Не найдена существующая конфигурация для таблиц")
+        key = None
+        if subject and grade:
+            subject = subject.replace(" ", "")
+            key = f"{subject} {grade}"
+            if key not in config:
+                key = None
+                warnings.append("Не найдена существующая конфигурация для таблиц")
 
         # Распознавание кода
         code_region = extract_region(image, config["regions"]["code"])
@@ -182,11 +183,14 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
         recognized_digits = []
         task_numbers = []
-        if key_found:
+        if key:
             recognized_digits = recognize_table(image, extended_model, yolo_model, config[key])
             task_numbers = config[key].get("task_numbers", "").split()
-        if not key_found or not recognized_digits:
+        if not key or not recognized_digits:
             task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model)
+        if not key or not recognized_digits:
+            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model_extra)
+
 
         task_dict = {}
         total_score = 0

@@ -2,7 +2,7 @@ import os
 import json
 
 # Путь к папке с JSON-файлами
-JSON_DIR = "./processed_lists_docker"
+JSON_DIR = "./processed_lists_docker_all"
 
 
 # Функция для подсчета ошибок и предупреждений

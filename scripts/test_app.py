@@ -11,8 +11,8 @@ SERVER_URL = "http://localhost:8000/recognize"
 API_KEY = ""
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "help_imgs/rus_new"
-PROCESSED_LISTS_DIR = "processed_lists_docker_rusnew"
+INPUT_IMAGES_DIR = "scans_jpg/ИСТ 11кл 2в 40"
+PROCESSED_LISTS_DIR = "processed_lists_docker_history11"
 
 
 class RequestStats:
