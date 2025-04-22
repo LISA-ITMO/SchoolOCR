@@ -96,18 +96,25 @@ def extract_region(image, coords):
     return image[y1:y2, x1:x2]
 
 
+replacements = {
+        "|": "1",
+        "!": "1",
+        "&": "8",
+        "?": "7",
+        ",": ".",
+        "\n": "."
+    }
+
+
 def recognize_hat(region_img):
     """Распознает текст в шапке документа"""
     processed_img = preprocess_general(region_img)
     whitelist = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
     custom_config = f'-c tessedit_char_whitelist="{whitelist}" --psm 6'
     text = pytesseract.image_to_string(processed_img, lang='rus', config=custom_config).strip()
-    text = text.replace("|", "1")
-    text = text.replace("!", "1")
-    text = text.replace("&", "8")
-    text = text.replace("?", "7")
-    text = text.replace(",", ".")
-    text = text.replace("\n", ".")
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
     return text
 
 

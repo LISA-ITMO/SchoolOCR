@@ -7,7 +7,7 @@ SERVER_URL = "http://158.160.57.65:8000/recognize"
 # SERVER_URL = "http://localhost:8000/recognize"
 
 # Путь к изображению
-IMAGE_PATH = "help_imgs/rus_new5/page_8.jpg"
+IMAGE_PATH = "Сканы титульников/chnew/Химия 8 (1)-6.pdf"
 
 # API-ключ
 API_KEY = ""
