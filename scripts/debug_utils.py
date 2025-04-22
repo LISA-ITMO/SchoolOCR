@@ -12,7 +12,7 @@ from utils.table_recognition import recognize_table
 from utils.table_rec_noconf import recognize_table_all
 from ultralytics import YOLO
 
-IMG_PATH = "help_imgs/rus_new\page_12.jpg"
+IMG_PATH = "scans_jpg/РУС 8 кл 1 в 39/РУС 8 кл 1 в 39_page_13.jpg"
 
 
 def load_config(config_path="../config.json"):
@@ -137,7 +137,7 @@ def main(file_path, config_path="../config.json"):
 
         # Загрузка моделей
         mnist_model = tf.keras.models.load_model("../mnist_model.keras")
-        yolo_model = YOLO("../cell_detect_extra.pt")
+        yolo_model = YOLO("../cell_detect.pt")
         extended_model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
         print("Модели успешно загружены.")
 

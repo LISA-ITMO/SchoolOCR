@@ -18,6 +18,8 @@ def recognize_table(
     table_rows = extract_table_rows(image, model_yolo)
 
     filtered_cells = []
+    if len(table_rows) > 2:
+        return None
     if config["rows"] == 1:
         filtered_cells = table_rows[1][1:-2]
     if config["rows"] == 2:

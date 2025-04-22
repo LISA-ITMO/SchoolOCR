@@ -105,7 +105,9 @@ def recognize_hat(region_img):
     text = text.replace("|", "1")
     text = text.replace("!", "1")
     text = text.replace("&", "8")
-    text = text.replace('\n', '')
+    text = text.replace("?", "7")
+    text = text.replace(",", ".")
+    text = text.replace("\n", ".")
     return text
 
 
@@ -177,7 +179,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         code_region = extract_region(image, config["regions"]["code"])
         code = None
         try:
-            code = recognize_code(code_region, mnist_model)
+            code = recognize_code(code_region, extended_model)
         except:
             errors.append("Не удалось распознать код участника")
 

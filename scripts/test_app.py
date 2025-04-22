@@ -11,8 +11,8 @@ SERVER_URL = "http://localhost:8000/recognize"
 API_KEY = ""
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "scans_jpg/ИСТ 11кл 2в 40"
-PROCESSED_LISTS_DIR = "processed_lists_docker_history11"
+INPUT_IMAGES_DIR = "Сканы титульников/chnew"
+PROCESSED_LISTS_DIR = "processed_lists_docker_chnew"
 
 
 class RequestStats:
@@ -104,7 +104,7 @@ def main():
         print(f"Папка {INPUT_IMAGES_DIR} не найдена.")
         return
 
-    image_files = [f for f in os.listdir(INPUT_IMAGES_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    image_files = [f for f in os.listdir(INPUT_IMAGES_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.pdf'))]
     if not image_files:
         print(f"В папке {INPUT_IMAGES_DIR} нет изображений.")
         return
