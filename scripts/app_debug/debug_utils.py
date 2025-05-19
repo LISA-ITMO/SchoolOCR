@@ -15,7 +15,7 @@ from ultralytics import YOLO
 IMG_PATH = "../to_proccess/Сканы титульников/русс яз 4 кл/Русский язык 4-1.pdf"
 
 
-def load_config(config_path="../config.json"):
+def load_config(config_path="../../config.json"):
     """Загружает конфигурационный файл"""
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -126,7 +126,7 @@ def save_table_image(image, original_path):
     return output_path
 
 
-def main(file_path, config_path="../config.json"):
+def main(file_path, config_path="../../config.json"):
     """Основная функция обработки документа"""
     try:
         # Обработка файла
@@ -136,9 +136,9 @@ def main(file_path, config_path="../config.json"):
         config = load_config(config_path)
 
         # Загрузка моделей
-        mnist_model = tf.keras.models.load_model("../mnist_model.keras")
-        yolo_model = YOLO("../../cell_detect.pt")
-        extended_model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
+        mnist_model = tf.keras.models.load_model("../../models/mnist_model.keras")
+        yolo_model = YOLO("../../models/cell_detect.pt")
+        extended_model = tf.keras.models.load_model("../../models/mnist_recognation_extendend.h5")
         print("Модели успешно загружены.")
 
         # Обработка шапки

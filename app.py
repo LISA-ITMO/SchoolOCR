@@ -42,10 +42,10 @@ with open(CONFIG_PATH, "r", encoding="utf-8") as f:
     config = json.load(f)
 
 # Загрузка моделей MNIST
-mnist_model = tf.keras.models.load_model("mnist_model.keras")
-extended_model = tf.keras.models.load_model("mnist_recognation_extendend.h5")
-yolo_model = YOLO("cell_detect.pt")
-yolo_model_extra = YOLO("cell_detect_extra.pt")
+mnist_model = tf.keras.models.load_model("./models/mnist_model.keras")
+extended_model = tf.keras.models.load_model("./models/mnist_recognation_extendend.h5")
+yolo_model = YOLO("./models/cell_detect.pt")
+yolo_model_extra = YOLO("./models/cell_detect_extra.pt")
 
 class ImageRequest(BaseModel):
     image_base64: str

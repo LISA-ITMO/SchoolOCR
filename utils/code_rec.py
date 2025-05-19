@@ -3,6 +3,7 @@ import numpy as np
 from wired_table_rec.utils import ImageOrientationCorrector
 from utils.mnist_preprocess_code import preprocess_image
 from utils.preprocess_general import preprocess_general
+from typing import List, Tuple, Optional, Dict, Any
 
 
 def recognize_code(image: np.ndarray, model: Any) -> Optional[str]:
