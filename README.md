@@ -29,7 +29,7 @@ python ./app.py
 ```
 5. Можете сделать тестовый запрос
 ```bash
-python ./scripts/sender.py
+python ./scripts/app_interaction/sender.py
 ```
 
 # Установка с помощью Docker
@@ -44,7 +44,7 @@ docker-compose up --build
 ```
 3. Можете сделать тестовый запрос
 ```bash
-python ./scripts/sender.py
+python ./scripts/app_interaction/sender.py
 ```
 # Требования к скану
 - Скан, насколько это возможно, сделать ровным и четким;
