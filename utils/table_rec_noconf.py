@@ -10,10 +10,38 @@ import os
 import time
 
 
-def get_cell_width(cell):
+def get_cell_width(cell: List[int]) -> int:
+    """Вычисляет ширину ячейки на основе её координат.
+
+    Args:
+        cell: Список координат ячейки в формате [x1, y1, x2, y2].
+
+    Returns:
+        int: Ширина ячейки (x2 - x1).
+    """
     return cell[2] - cell[0]
 
-def filter_cells(table_rows):
+
+def filter_cells(table_rows: List[List[List[int]]]) -> Tuple[Optional[List[List[int]]], Optional[List[List[int]]]]:
+    """Фильтрует и разделяет ячейки таблицы на две группы (задачи и MNIST-цифры).
+
+    Обрабатывает строки таблицы, выделяя ячейки с задачами и ячейки с цифрами.
+    Поддерживает таблицы с 2, 4 или 6 строками.
+
+    Args:
+        table_rows: Список строк таблицы, где каждая строка — список ячеек в формате [x1, y1, x2, y2].
+
+    Returns:
+        Tuple: Два списка ячеек:
+            - filtered_cells_tasks: Ячейки с задачами (или None, если не удалось обработать).
+            - filtered_cells_mnist: Ячейки с цифрами (или None, если не удалось обработать).
+
+    Note:
+        Логика обработки зависит от количества строк:
+        - 2 строки: берутся ячейки [1:-2] из каждой строки.
+        - 4 строки: анализируется ширина первых ячеек для определения правильного объединения.
+        - 6 строк: объединяются ячейки из строк 1, 4 и 2, 5 соответственно.
+    """
     if len(table_rows) % 2 != 0:
         table_rows = [row for row in table_rows if len(row) > 3]
         if len(table_rows) % 2 != 0:
@@ -36,13 +64,36 @@ def filter_cells(table_rows):
 
     return None, None
 
+
 def recognize_table_all(
         image: np.ndarray,
         model_digit: Any,
         model_yolo: Any,
         debug: bool = False,
-):
+) -> Tuple[Optional[List[str]], Optional[List[Tuple[int, float]]]]:
+    """Распознаёт цифры в таблице на изображении с использованием YOLO и MNIST-модели.
 
+    Основной пайплайн:
+        1. Извлекает строки таблицы с помощью YOLO.
+        2. Фильтрует ячейки для разделения задач и цифр.
+        3. Предобрабатывает и распознаёт цифры в ячейках с помощью MNIST-модели.
+        4. (Опционально) сохраняет отладочную информацию и визуализирует результаты.
+
+    Args:
+        image: Входное изображение таблицы (NumPy array в формате BGR или RGB).
+        model_digit: Обученная модель для распознавания цифр (например, MNIST-модель).
+        model_yolo: YOLO-модель для детекции таблиц и ячеек.
+        debug: Если True, сохраняет промежуточные изображения и выводит графики.
+
+    Returns:
+        Tuple: Два списка:
+            - tasks: Номера задач (например, ["1", "2", "3"]).
+            - scores: Распознанные цифры и их вероятности в формате (digit, probability).
+
+    Note:
+        - Для отладки можно раскомментировать сохранение изображений в `./debug_cells/`.
+        - Если количество ячеек задач и цифр не совпадает, возвращает (None, None).
+    """
     table_rows = extract_table_rows(image, model_yolo)
     # table_rows = [row for row in table_rows if len(row) >= 3]
 

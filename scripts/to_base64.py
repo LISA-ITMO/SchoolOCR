@@ -11,6 +11,6 @@ def image_to_base64(image):
     return img_base64
 
 
-image = Image.open("cropped_tables/page_1.jpg")
+image = Image.open("to_proccess/cropped_tables/page_1.jpg")
 base64_str = image_to_base64(image)
 print(base64_str)

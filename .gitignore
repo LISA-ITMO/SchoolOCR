@@ -5,16 +5,19 @@ __pycache__/
 
 *.zip
 *.pdf
-scripts/Сканы титульников/*
-scripts/scans_jpg/
+scripts/to_proccess/Сканы титульников/*
+scripts/to_proccess/scans_jpg/
 debug*/
-scripts/cropped_code/
-scripts/cropped_tables/
-scripts/cropped_hat/
-scripts/russian 8/
-scripts/history/
-scripts/processed_lists*
-scripts/help_imgs/*
+scripts/to_proccess/cropped_code/
+scripts/to_proccess/cropped_tables/
+scripts/to_proccess/cropped_hat/
+scripts/to_proccess/russian 8/
+scripts/to_proccess/history/
+scripts/check_school/
+scripts/processed_lists*/
+scripts/proccessed_/
+scripts/to_proccess/
+scripts/to_proccess/help_imgs/*
 *csv
 classified*
 

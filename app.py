@@ -11,8 +11,8 @@ import fitz  # PyMuPDF
 from difflib import get_close_matches
 import pytesseract
 from ultralytics import YOLO
-from utils.code_recognition import recognize_code
-from utils.table_recognition import recognize_table
+from utils.code_rec import recognize_code
+from utils.table_rec import recognize_table
 from utils.preprocess_general import preprocess_general
 from utils.table_rec_noconf import recognize_table_all
 

@@ -3,10 +3,10 @@ import shutil
 import json
 
 # Путь к папке с обработанными результатами
-PROCESSED_RESULTS_DIR = "processed_lists_docker_rusnew"
+PROCESSED_RESULTS_DIR = "proccessed_/processed_lists_docker_rusnew"
 
 # Папка для сохранения изображений с ошибками
-ERROR_IMAGES_DIR = "processed_lists_docker_rusnew5"
+ERROR_IMAGES_DIR = "proccessed_/processed_lists_docker_rusnew5"
 
 
 def find_error_images():
