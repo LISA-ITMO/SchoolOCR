@@ -3,7 +3,9 @@ from ultralytics import YOLO
 import cv2
 
 
-def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_threshold=20, debug=False):
+def extract_table_rows(
+    image, model, conf_threshold=0.5, min_y=1500, row_threshold=20, debug=False
+):
     """
     Анализирует изображение таблицы и возвращает отсортированные строки с координатами клеток
 
@@ -31,7 +33,11 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             return []
 
         # Фильтрация клеток
-        mask = (boxes.conf >= conf_threshold) & (boxes.xyxy[:, 1] >= min_y) & (boxes.xyxy[:, 1] <= 3300)
+        mask = (
+            (boxes.conf >= conf_threshold)
+            & (boxes.xyxy[:, 1] >= min_y)
+            & (boxes.xyxy[:, 1] <= 3300)
+        )
         filtered_boxes = boxes[mask]
 
         if debug:
@@ -72,9 +78,10 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             for i, row in enumerate(row_groups, 1):
                 print(f"Строка {i} ({len(row)} клеток):")
                 for j, cell in enumerate(row, 1):
-                    print(f"  Клетка {j}: [{cell[0]:.0f}, {cell[1]:.0f}, {cell[2]:.0f}, {cell[3]:.0f}]")
+                    print(
+                        f"  Клетка {j}: [{cell[0]:.0f}, {cell[1]:.0f}, {cell[2]:.0f}, {cell[3]:.0f}]"
+                    )
 
         return row_groups
 
     return []
-

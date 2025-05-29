@@ -47,13 +47,24 @@ extended_model = tf.keras.models.load_model("./models/mnist_recognation_extenden
 yolo_model = YOLO("./models/cell_detect.pt")
 yolo_model_extra = YOLO("./models/cell_detect_extra.pt")
 
+
 class ImageRequest(BaseModel):
+    """
+    Represents a request containing an image in base64 format.
+
+        This class encapsulates the base64 encoded image data, facilitating
+        its transmission or processing within an application.
+
+        Attributes:
+            image_base64: The base64 encoded string representation of the image.
+    """
+
     image_base64: str
 
 
 def is_pdf(file_data):
     """Проверяет, является ли файл PDF"""
-    return len(file_data) > 4 and file_data[:4] == b'%PDF'
+    return len(file_data) > 4 and file_data[:4] == b"%PDF"
 
 
 def pdf_to_image(pdf_data):
@@ -87,7 +98,9 @@ def decode_image(image_data):
 
 def resize_to_target(image, target_width=2480, target_height=3505):
     """Изменяет размер изображения до целевого"""
-    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4)
+    return cv2.resize(
+        image, (target_width, target_height), interpolation=cv2.INTER_LANCZOS4
+    )
 
 
 def extract_region(image, coords):
@@ -96,22 +109,19 @@ def extract_region(image, coords):
     return image[y1:y2, x1:x2]
 
 
-replacements = {
-        "|": "1",
-        "!": "1",
-        "&": "8",
-        "?": "7",
-        ",": ".",
-        "\n": "."
-    }
+replacements = {"|": "1", "!": "1", "&": "8", "?": "7", ",": ".", "\n": "."}
 
 
 def recognize_hat(region_img):
     """Распознает текст в шапке документа"""
     processed_img = preprocess_general(region_img)
-    whitelist = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
+    whitelist = (
+        "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя.0123456789"
+    )
     custom_config = f'-c tessedit_char_whitelist="{whitelist}" --psm 6'
-    text = pytesseract.image_to_string(processed_img, lang='rus', config=custom_config).strip()
+    text = pytesseract.image_to_string(
+        processed_img, lang="rus", config=custom_config
+    ).strip()
     for old, new in replacements.items():
         text = text.replace(old, new)
 
@@ -121,8 +131,7 @@ def recognize_hat(region_img):
 def parse_hat_text(text):
     """Извлекает предмет, класс и вариант из текста шапки"""
     pattern = re.compile(
-        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$",
-        re.IGNORECASE
+        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$", re.IGNORECASE
     )
     match = pattern.search(text)
     if match:
@@ -130,8 +139,9 @@ def parse_hat_text(text):
         grade = match.group(2)
         variant = match.group(3)
         return subject, grade, variant
-    pattern = re.compile(r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)",
-                         re.IGNORECASE)
+    pattern = re.compile(
+        r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)", re.IGNORECASE
+    )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
@@ -193,13 +203,18 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
         recognized_digits = []
         task_numbers = []
         if key:
-            recognized_digits = recognize_table(image, extended_model, yolo_model, config[key])
+            recognized_digits = recognize_table(
+                image, extended_model, yolo_model, config[key]
+            )
             task_numbers = config[key].get("task_numbers", "").split()
         if not key or not recognized_digits:
-            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model)
+            task_numbers, recognized_digits = recognize_table_all(
+                image, extended_model, yolo_model
+            )
             if not recognized_digits:
-                task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model_extra)
-
+                task_numbers, recognized_digits = recognize_table_all(
+                    image, extended_model, yolo_model_extra
+                )
 
         task_dict = {}
         total_score = 0
@@ -216,7 +231,9 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
                 if i < len(task_numbers):
                     task_name = task_numbers[i]
-                    display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
+                    display_digit = (
+                        "-" if digit == 10 else ("x" if digit == 11 else digit)
+                    )
                     task_dict[task_name] = (display_digit, prob)
 
                     if prob < 0.6:
@@ -226,7 +243,9 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
                         total_score += digit
 
             if low_confidence:
-                warnings.append(f"Низкая уверенность в заданиях: {', '.join(low_confidence)}")
+                warnings.append(
+                    f"Низкая уверенность в заданиях: {', '.join(low_confidence)}"
+                )
 
         return {
             "subject": subject,
@@ -236,7 +255,7 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             "total_score": total_score,
             "scores": task_dict,
             "errors": errors if errors else None,
-            "warnings": warnings if warnings else None
+            "warnings": warnings if warnings else None,
         }
 
     except HTTPException:

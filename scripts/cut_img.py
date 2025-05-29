@@ -6,13 +6,28 @@ hat_coords = [(284, 113), (1017, 244)]
 code_coords = [(1532, 100), (2324, 264)]
 table_coords = [(235, 2754), (2393, 3105)]
 
+
 def crop_images_in_folder(input_folder, output_folder, x1, y1, x2, y2):
+    """
+    Crops images within a folder based on specified coordinates.
+
+        Args:
+            input_folder: The path to the folder containing the images.
+            output_folder: The path to the folder where cropped images will be saved.
+            x1: The starting x-coordinate for cropping.
+            y1: The starting y-coordinate for cropping.
+            x2: The ending x-coordinate for cropping.
+            y2: The ending y-coordinate for cropping.
+
+        Returns:
+            None
+    """
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     for filename in os.listdir(input_folder):
         file_path = os.path.join(input_folder, filename)
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
+        if filename.lower().endswith((".png", ".jpg", ".jpeg", ".bmp")):
             image = cv2.imread(file_path)
             if image is None:
                 print(f"Не удалось загрузить изображение {filename}.")

@@ -12,6 +12,24 @@ OUTPUT_DIR = "../proccessed_/processed_tables"
 
 
 def table_extraction(img_path, model, output_dir):
+    """
+    Extracts data from tables in images.
+
+        This method identifies and extracts cells from a table within an image,
+        performs preprocessing on each cell, uses a provided model to predict the
+        content of each cell (assumed to be digits), and saves the results along
+        with visualization plots.
+
+        Args:
+            img_path: Path to the input image containing the table.
+            model: A pre-trained Keras model for digit recognition.
+            output_dir: Directory where output files (plots, JSON) will be saved.
+
+        Returns:
+            dict: A dictionary containing information about the extracted cells,
+                  including their coordinates, predicted content, and probabilities.
+                  Returns None if image loading fails or no cells are found.
+    """
     wired_engine = WiredTableRecognition()
     table_engine = wired_engine
     img = cv2.imread(img_path)
@@ -35,10 +53,12 @@ def table_extraction(img_path, model, output_dir):
     second_row_cells = []
     for i, logic in enumerate(logic_points):
         if logic[0] == 1 and logic[1] == 1:
-            second_row_cells.append({
-                "index": i + 1,
-                "coordinates": list(map(int, polygons[i])),
-            })
+            second_row_cells.append(
+                {
+                    "index": i + 1,
+                    "coordinates": list(map(int, polygons[i])),
+                }
+            )
 
     second_row_cells = second_row_cells[1:-2]
 
@@ -58,7 +78,7 @@ def table_extraction(img_path, model, output_dir):
     plt.subplot(3, 1, 1)
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.title("Original Table")
-    plt.axis('off')
+    plt.axis("off")
 
     for i, cell_info in enumerate(second_row_cells):
         x1, y1, x2, y2 = cell_info["coordinates"]
@@ -66,53 +86,64 @@ def table_extraction(img_path, model, output_dir):
 
         if cell_img.size == 0:
             print(f"Ячейка {cell_info['index']} ({img_path}): пустая область, пропуск.")
-            results.append({
-                "index": cell_info["index"],
-                "coordinates": cell_info["coordinates"],
-                "content": None,
-                "probability": 0.0,
-            })
+            results.append(
+                {
+                    "index": cell_info["index"],
+                    "coordinates": cell_info["coordinates"],
+                    "content": None,
+                    "probability": 0.0,
+                }
+            )
             continue
 
         input_data, processed_img = preprocess_image(cell_img)
 
         if input_data is None or processed_img is None:
-            print(f"Ячейка {cell_info['index']} ({img_path}): не удалось обработать изображение.")
-            results.append({
-                "index": cell_info["index"],
-                "coordinates": cell_info["coordinates"],
-                "content": None,
-                "probability": 0.0,
-            })
+            print(
+                f"Ячейка {cell_info['index']} ({img_path}): не удалось обработать изображение."
+            )
+            results.append(
+                {
+                    "index": cell_info["index"],
+                    "coordinates": cell_info["coordinates"],
+                    "content": None,
+                    "probability": 0.0,
+                }
+            )
             continue
 
         predictions = model.predict(input_data)
         predicted_digit = np.argmax(predictions)
         predicted_prob = float(np.max(predictions))
 
-        results.append({
-            "index": cell_info["index"],
-            "coordinates": cell_info["coordinates"],
-            "content": int(predicted_digit),
-            "probability": predicted_prob,
-        })
+        results.append(
+            {
+                "index": cell_info["index"],
+                "coordinates": cell_info["coordinates"],
+                "content": int(predicted_digit),
+                "probability": predicted_prob,
+            }
+        )
 
         print(
-            f"Ячейка {cell_info['index']} ({img_path}): распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}")
+            f"Ячейка {cell_info['index']} ({img_path}): распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}"
+        )
 
         plt.subplot(3, num_cells, num_cells + i + 1)
         plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
         plt.title(f"Original {cell_info['index']}")
-        plt.axis('off')
+        plt.axis("off")
 
         plt.subplot(3, num_cells, 2 * num_cells + i + 1)
-        plt.imshow(processed_img, cmap='gray')
-        plt.title(f"Processed {cell_info['index']}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}")
-        plt.axis('off')
+        plt.imshow(processed_img, cmap="gray")
+        plt.title(
+            f"Processed {cell_info['index']}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}"
+        )
+        plt.axis("off")
 
     page_plot_file = f"{page_output_dir}/table.png"
     plt.tight_layout()
-    plt.savefig(page_plot_file, dpi=300, bbox_inches='tight')
+    plt.savefig(page_plot_file, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Обработанные данные для {img_path} сохранены в файл: {page_plot_file}")
 
@@ -132,7 +163,7 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     for filename in os.listdir(INPUT_DIR):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        if filename.lower().endswith((".png", ".jpg", ".jpeg")):
             img_path = os.path.join(INPUT_DIR, filename)
             print(f"Обработка файла: {img_path}")
 
@@ -140,8 +171,11 @@ if __name__ == "__main__":
                 output_json = table_extraction(img_path, model, OUTPUT_DIR)
 
                 if output_json is not None:
-                    json_file = os.path.join(OUTPUT_DIR, os.path.splitext(filename)[0],
-                                             f"{os.path.splitext(filename)[0]}.json")
+                    json_file = os.path.join(
+                        OUTPUT_DIR,
+                        os.path.splitext(filename)[0],
+                        f"{os.path.splitext(filename)[0]}.json",
+                    )
                     os.makedirs(os.path.dirname(json_file), exist_ok=True)
                     with open(json_file, "w") as f:
                         json.dump(output_json, f, indent=4)

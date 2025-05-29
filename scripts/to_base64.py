@@ -4,6 +4,15 @@ import base64
 
 
 def image_to_base64(image):
+    """
+    Converts a PIL Image object to a Base64 encoded string.
+
+        Args:
+            image: The PIL Image object to convert.
+
+        Returns:
+            str: A Base64 encoded string representation of the image in PNG format.
+    """
     buffered = io.BytesIO()
     image.save(buffered, format="PNG")
     img_bytes = buffered.getvalue()

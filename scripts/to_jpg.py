@@ -4,6 +4,17 @@ import os
 
 
 def pdf_to_jpg(pdf_path, output_folder, dpi=300):
+    """
+    Converts a PDF file to a series of JPG images, one per page.
+
+        Args:
+            pdf_path: The path to the input PDF file.
+            output_folder: The folder where the JPG images will be saved.
+            dpi: The desired DPI (dots per inch) for the output images.  Defaults to 300.
+
+        Returns:
+            None
+    """
     pdf_document = fitz.open(pdf_path)
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -13,7 +24,11 @@ def pdf_to_jpg(pdf_path, output_folder, dpi=300):
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-        img.save(os.path.join(output_folder, f"page_{page_number + 1}.jpg"), "JPEG", quality=100)
+        img.save(
+            os.path.join(output_folder, f"page_{page_number + 1}.jpg"),
+            "JPEG",
+            quality=100,
+        )
     pdf_document.close()
 
 

@@ -7,13 +7,31 @@ from utils.Yolo_cell_rec import extract_table_rows
 import os
 import time
 
+
 def recognize_table(
-        image: np.ndarray,
-        model_digit: Any,
-        model_yolo: Any,
-        config: Dict[str, Any],
-        debug: bool = False,
+    image: np.ndarray,
+    model_digit: Any,
+    model_yolo: Any,
+    config: Dict[str, Any],
+    debug: bool = False,
 ) -> Optional[List[Tuple[int, float]]]:
+    """
+    Recognizes digits within a table in an image.
+
+        This method extracts potential table rows using a YOLO model, filters them based on the expected number of rows and cells specified in the configuration,
+        and then uses a digit recognition model to predict the digit present in each cell.  It also includes optional debugging features for visualizing the process.
+
+        Args:
+            image: The input image as a NumPy array.
+            model_digit: The digit recognition model.
+            model_yolo: The YOLO model used for table row extraction.
+            config: A dictionary containing configuration parameters, including 'rows' (expected number of rows) and 'total_cells' (expected total cells).
+            debug:  A boolean flag to enable debugging visualizations. Defaults to False.
+
+        Returns:
+            A list of tuples, where each tuple contains the predicted digit and its probability for each cell in the table.
+            Returns None if the number of detected cells does not match the expected 'total_cells' or if fewer than 3 rows are found.
+    """
 
     table_rows = extract_table_rows(image, model_yolo)
 
@@ -37,7 +55,9 @@ def recognize_table(
                 i += 1
 
     if len(filtered_cells) != config["total_cells"]:
-        print(f"Найдено клеток {len(filtered_cells)}, Ожидалось {config['total_cells']}")
+        print(
+            f"Найдено клеток {len(filtered_cells)}, Ожидалось {config['total_cells']}"
+        )
         return None
 
     results = []
@@ -83,12 +103,12 @@ def recognize_table(
             plt.subplot(2, len(filtered_cells), i + 1)
             plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
             plt.title(f"Original {i + 1}")
-            plt.axis('off')
+            plt.axis("off")
 
             plt.subplot(2, len(filtered_cells), i + 1 + len(filtered_cells))
-            plt.imshow(input_data.reshape(28, 28), cmap='gray')
+            plt.imshow(input_data.reshape(28, 28), cmap="gray")
             plt.title(f"Processed {i + 1}\nPred: {digit}\nProb: {prob:.4f}")
-            plt.axis('off')
+            plt.axis("off")
 
     if debug:
         plt.tight_layout()

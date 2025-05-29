@@ -30,7 +30,7 @@ def extract_region(image, coords):
 def recognize_hat(region_img):
     """Распознает текст в шапке документа"""
 
-    text = pytesseract.image_to_string(region_img, lang='rus').strip()
+    text = pytesseract.image_to_string(region_img, lang="rus").strip()
     text = text.replace("|", "1")
     text = text.replace("!", "1")
     text = text.replace("&", "8")
@@ -43,8 +43,7 @@ def recognize_hat(region_img):
 def parse_hat_text(text):
     """Извлекает предмет, класс и вариант из текста шапки"""
     pattern = re.compile(
-        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$",
-        re.IGNORECASE
+        r"^[^.]*\.\s*([^.]*)\.\s*(\d{1,2})\D*.*?(\d)\s*\.{0,2}$", re.IGNORECASE
     )
     match = pattern.search(text)
     if match:
@@ -52,8 +51,9 @@ def parse_hat_text(text):
         grade = match.group(2)
         variant = match.group(3)
         return subject, grade, variant
-    pattern = re.compile(r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)",
-                         re.IGNORECASE)
+    pattern = re.compile(
+        r"\.\s*([А-Яа-яёЁ ]+)\.\s*(\d{1,2})\s*[^0-9]*.*?Вариант\s*(\d+)", re.IGNORECASE
+    )
     match = pattern.search(text)
     if match:
         subject = match.group(1).lower()
@@ -72,7 +72,7 @@ def find_closest_key(subject, config):
 
 def is_pdf(file_data):
     """Проверяет, является ли файл PDF"""
-    return len(file_data) > 4 and file_data[:4] == b'%PDF'
+    return len(file_data) > 4 and file_data[:4] == b"%PDF"
 
 
 def pdf_to_image(pdf_data):
@@ -92,7 +92,7 @@ def pdf_to_image(pdf_data):
 
 def process_file(file_path):
     """Обрабатывает файл (PDF или изображение)"""
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         file_data = f.read()
 
     if is_pdf(file_data):
@@ -116,7 +116,9 @@ def save_table_image(image, original_path):
 
     # Извлекаем имя файла без расширения
     filename = os.path.splitext(os.path.basename(original_path))[0]
-    output_path = os.path.join(debug_dir, f"table_{filename}.png")  # Явно указываем .png
+    output_path = os.path.join(
+        debug_dir, f"table_{filename}.png"
+    )  # Явно указываем .png
 
     # Проверяем, успешно ли сохранено изображение
     if not cv2.imwrite(output_path, image):
@@ -138,7 +140,9 @@ def main(file_path, config_path="../../config.json"):
         # Загрузка моделей
         mnist_model = tf.keras.models.load_model("../../models/mnist_model.keras")
         yolo_model = YOLO("../../models/cell_detect.pt")
-        extended_model = tf.keras.models.load_model("../../models/mnist_recognation_extendend.h5")
+        extended_model = tf.keras.models.load_model(
+            "../../models/mnist_recognation_extendend.h5"
+        )
         print("Модели успешно загружены.")
 
         # Обработка шапки
@@ -191,10 +195,14 @@ def main(file_path, config_path="../../config.json"):
         recognized_digits = []
         task_numbers = []
         if key_found:
-            recognized_digits = recognize_table(image, extended_model, yolo_model, config[key], debug=True)
+            recognized_digits = recognize_table(
+                image, extended_model, yolo_model, config[key], debug=True
+            )
             task_numbers = config[key].get("task_numbers", "").split()
         if not key_found or not recognized_digits:
-            task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model, debug=True)
+            task_numbers, recognized_digits = recognize_table_all(
+                image, extended_model, yolo_model, debug=True
+            )
 
         task_dict = {}
         warnings = []
@@ -221,7 +229,9 @@ def main(file_path, config_path="../../config.json"):
                         total_score += digit
 
             if low_confidence:
-                warnings.append(f"Низкая уверенность в заданиях: {', '.join(low_confidence)}")
+                warnings.append(
+                    f"Низкая уверенность в заданиях: {', '.join(low_confidence)}"
+                )
 
         # Вывод результатов
         print("\nРезультаты распознавания:")

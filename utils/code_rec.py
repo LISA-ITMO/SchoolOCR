@@ -53,17 +53,21 @@ def recognize_code(image: np.ndarray, model: Any) -> Optional[str]:
     w, h = min(w, gray.shape[1] - x), min(h, gray.shape[0] - y)
 
     # Вырезаем основную область
-    cropped = gray[y:y + h, x:x + w]
+    cropped = gray[y : y + h, x : x + w]
 
     # 4. Поиск цифровых контуров
     _, cropped_binary = cv2.threshold(cropped, 128, 255, cv2.THRESH_BINARY_INV)
     dilated = cv2.dilate(cropped_binary, kernel, iterations=1)
     eroded = cv2.erode(dilated, kernel, iterations=1)
-    cropped_contours, _ = cv2.findContours(eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cropped_contours, _ = cv2.findContours(
+        eroded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
 
     # Фильтрация контуров по минимальной площади
     min_contour_area = 100  # Минимальная площадь контура (можно настроить)
-    cropped_contours = [c for c in cropped_contours if cv2.contourArea(c) > min_contour_area]
+    cropped_contours = [
+        c for c in cropped_contours if cv2.contourArea(c) > min_contour_area
+    ]
 
     # Сортировка контуров по координате X (слева направо)
     cropped_contours = sorted(cropped_contours, key=lambda c: cv2.boundingRect(c)[0])
@@ -78,7 +82,9 @@ def recognize_code(image: np.ndarray, model: Any) -> Optional[str]:
     contour_image = cv2.cvtColor(cropped, cv2.COLOR_GRAY2BGR)
 
     # Отрисовка всех контуров
-    cv2.drawContours(contour_image, cropped_contours, -1, (0, 255, 0), 2)  # Зеленый цвет для контуров
+    cv2.drawContours(
+        contour_image, cropped_contours, -1, (0, 255, 0), 2
+    )  # Зеленый цвет для контуров
 
     # 5. Распознавание цифр и конкатенация
     result_number = ""
@@ -86,7 +92,7 @@ def recognize_code(image: np.ndarray, model: Any) -> Optional[str]:
     # Обработка каждой цифры
     for i, contour in enumerate(cropped_contours):
         x_, y_, w_, h_ = cv2.boundingRect(contour)
-        digit_roi = cropped[y_:y_ + h_, x_:x_ + w_]
+        digit_roi = cropped[y_ : y_ + h_, x_ : x_ + w_]
 
         # Препроцессинг с использованием rec_digit
         input_data = preprocess_image(digit_roi)

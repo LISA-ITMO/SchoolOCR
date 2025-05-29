@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def center_image(image, size=(28, 28), digit_size=(20, 20)):
     """
     Центрирует изображение цифры и изменяет его размер до указанного.
@@ -17,7 +18,7 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
     image_center = np.array([width / 2, height / 2])
 
     # Находим контур, ближайший к центру
-    min_distance = float('inf')
+    min_distance = float("inf")
     best_contour = None
 
     for contour in contours:
@@ -40,19 +41,19 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
     x, y, w, h = cv2.boundingRect(best_contour)
 
     # Вырезаем область с цифрой
-    digit_roi = image[y:y + h, x:x + w]
+    digit_roi = image[y : y + h, x : x + w]
 
     digit_roi = cv2.erode(
         digit_roi,
         kernel=cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3)),
-        iterations=1
+        iterations=1,
     )
 
     # Применяем дилатацию к вырезанной цифре
     digit_roi = cv2.dilate(
         digit_roi,
         kernel=cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2)),
-        iterations=2
+        iterations=2,
     )
 
     # Сохраняем соотношение сторон
@@ -65,25 +66,48 @@ def center_image(image, size=(28, 28), digit_size=(20, 20)):
         new_w = int(new_h * aspect_ratio)
 
     # Изменяем размер цифры
-    resized_digit = cv2.resize(digit_roi, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    resized_digit = cv2.resize(
+        digit_roi, (new_w, new_h), interpolation=cv2.INTER_LINEAR
+    )
 
     # Создаем пустое изображение и центрируем цифру
     centered_image = np.zeros(size, dtype=np.uint8)
     offset_x = (size[1] - new_w) // 2
     offset_y = (size[0] - new_h) // 2
-    centered_image[offset_y:offset_y + new_h, offset_x:offset_x + new_w] = resized_digit
+    centered_image[offset_y : offset_y + new_h, offset_x : offset_x + new_w] = (
+        resized_digit
+    )
 
     return centered_image
 
+
 def preprocess_image(image, output_size=(28, 28), digit_size=(20, 20), crop_pixels=4):
+    """
+    Preprocesses a grayscale image for digit recognition.
+
+        Applies CLAHE enhancement, binary thresholding, dilation, centering,
+        normalization, and reshaping to prepare the image for input into a model.
+
+        Args:
+            gray: The input grayscale image (NumPy array).
+            output_size: The desired output size of the preprocessed image (tuple).
+            digit_size:  The expected digit size within the image.
+
+        Returns:
+            A tuple containing:
+                - The reshaped, normalized image ready for model input (NumPy array), or None if an error occurred.
+                - The centered dilated binary image (NumPy array), or None if an error occurred.
+    """
     try:
         if image is None or image.size == 0:
             raise ValueError("Input image is empty or invalid.")
 
         if crop_pixels > 0:
             h, w = image.shape[:2]
-            if h > 2*crop_pixels and w > 2*crop_pixels:
-                image = image[crop_pixels:h-crop_pixels, crop_pixels:w-crop_pixels]
+            if h > 2 * crop_pixels and w > 2 * crop_pixels:
+                image = image[
+                    crop_pixels : h - crop_pixels, crop_pixels : w - crop_pixels
+                ]
             else:
                 print("Предупреждение: изображение слишком маленькое для обрезки")
 
@@ -92,12 +116,14 @@ def preprocess_image(image, output_size=(28, 28), digit_size=(20, 20), crop_pixe
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         enhanced = clahe.apply(gray)
 
-        _, binary = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        _, binary = cv2.threshold(
+            enhanced, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )
 
         dilated = cv2.dilate(
             binary,
             kernel=cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)),
-            iterations=1
+            iterations=1,
         )
 
         centered = center_image(dilated, size=output_size, digit_size=digit_size)

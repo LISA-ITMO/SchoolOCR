@@ -13,6 +13,16 @@ os.makedirs(os.path.join(OUTPUT_DIR, "recognition_status"), exist_ok=True)
 
 
 def analyze_folder(folder_path, folder_name=""):
+    """
+    Analyzes a folder containing JSON files to extract confidence scores and count recognized/unrecognized tables.
+
+        Args:
+            folder_path: The path to the folder containing the JSON files.
+
+        Returns:
+            tuple: A tuple containing a list of confidence scores, the number of
+                   recognized tables, and the number of unrecognizable tables.
+    """
     confidences = []
     recognized_tables = 0
     unrecognizable_tables = 0
@@ -35,7 +45,11 @@ def analyze_folder(folder_path, folder_name=""):
                     # Оценки: confidence
                     scores = data.get("scores", {})
                     for key, value in scores.items():
-                        if isinstance(value, list) and len(value) >= 2 and value[1] is not None:
+                        if (
+                            isinstance(value, list)
+                            and len(value) >= 2
+                            and value[1] is not None
+                        ):
                             confidences.append(value[1])
 
                 except Exception as e:
@@ -45,6 +59,17 @@ def analyze_folder(folder_path, folder_name=""):
 
 
 def plot_confidence_histogram(confidences, output_path, title_suffix=""):
+    """
+    Plots a histogram of confidence values.
+
+        Args:
+            confidences: A list or array of confidence scores.
+            output_path: The path to save the generated image.
+            title_suffix: An optional string to append to the plot title.
+
+        Returns:
+            None
+    """
     if not confidences:
         return
 
@@ -57,52 +82,86 @@ def plot_confidence_histogram(confidences, output_path, title_suffix=""):
     counts = counts[::-1]
 
     plt.figure(figsize=(10, 6))
-    bars = plt.bar(bin_labels, counts, color='skyblue', edgecolor='black')
+    bars = plt.bar(bin_labels, counts, color="skyblue", edgecolor="black")
 
     for bar in bars:
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2, height + 0.5,
-                 str(int(height)), ha='center', va='bottom')
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.5,
+            str(int(height)),
+            ha="center",
+            va="bottom",
+        )
 
-    title = 'Распределение уверенности в распознавании оценок'
+    title = "Распределение уверенности в распознавании оценок"
     if title_suffix:
         title += f" ({title_suffix})"
     plt.title(title)
-    plt.xlabel('Интервалы уверенности')
-    plt.ylabel('Количество значений')
+    plt.xlabel("Интервалы уверенности")
+    plt.ylabel("Количество значений")
     plt.xticks(rotation=45)
-    plt.grid(True, axis='y', alpha=0.7)
+    plt.grid(True, axis="y", alpha=0.7)
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
 
 
 def plot_recognition_status(recognized, unrecognized, output_path, title_suffix=""):
-    labels = ['Распознанные', 'Нераспознанные']
+    """
+    Plots a bar chart showing the number of recognized and unrecognized tables.
+
+        Args:
+            s: Labels for the bars (e.g., ['Recognized', 'Unrecognized']).
+            values: Heights of the bars representing the counts.
+            color: Colors for the bars, defaults to green for recognized and red for unrecognized.
+            edgecolor: Color of the bar edges, defaults to black.
+
+        Returns:
+            None
+    """
+    labels = ["Распознанные", "Нераспознанные"]
     values = [recognized, unrecognized]
 
     plt.figure(figsize=(8, 5))
-    bars = plt.bar(labels, values, color=['green', 'red'], edgecolor='black')
+    bars = plt.bar(labels, values, color=["green", "red"], edgecolor="black")
 
     for bar in bars:
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2, height + 0.5,
-                 str(int(height)), ha='center', va='bottom')
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.5,
+            str(int(height)),
+            ha="center",
+            va="bottom",
+        )
 
-    title = 'Количество распознанных и нераспознанных таблиц'
+    title = "Количество распознанных и нераспознанных таблиц"
     if title_suffix:
         title += f" ({title_suffix})"
     plt.title(title)
-    plt.ylabel('Число таблиц')
+    plt.ylabel("Число таблиц")
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
 
 
 def analyze_and_plot(json_dir):
+    """
+    Analyzes JSON data from subdirectories, generates plots of confidence levels and recognition status, and saves them to a specified output directory.
+
+        Args:
+            json_dir: The path to the root directory containing subdirectories with JSON files.
+
+        Returns:
+            None
+    """
     # Собираем все подпапки (исключая analytics)
-    subdirs = [d for d in os.listdir(json_dir)
-               if os.path.isdir(os.path.join(json_dir, d)) and d != "analytics"]
+    subdirs = [
+        d
+        for d in os.listdir(json_dir)
+        if os.path.isdir(os.path.join(json_dir, d)) and d != "analytics"
+    ]
 
     # Если нет подпапок, анализируем только корневую директорию
     if not subdirs:
@@ -127,19 +186,29 @@ def analyze_and_plot(json_dir):
 
         # Сохраняем графики для текущей папки
         if confidences:
-            conf_output_path = os.path.join(OUTPUT_DIR, "confidence_histograms", f"{folder_name}.png")
+            conf_output_path = os.path.join(
+                OUTPUT_DIR, "confidence_histograms", f"{folder_name}.png"
+            )
             plot_confidence_histogram(confidences, conf_output_path, folder_name)
 
-        recog_output_path = os.path.join(OUTPUT_DIR, "recognition_status", f"{folder_name}.png")
-        plot_recognition_status(recognized, unrecognized, recog_output_path, folder_name)
+        recog_output_path = os.path.join(
+            OUTPUT_DIR, "recognition_status", f"{folder_name}.png"
+        )
+        plot_recognition_status(
+            recognized, unrecognized, recog_output_path, folder_name
+        )
 
     # Сохраняем общую статистику
     if total_confidences:
-        conf_output_path = os.path.join(OUTPUT_DIR, "confidence_histograms", "TOTAL.png")
+        conf_output_path = os.path.join(
+            OUTPUT_DIR, "confidence_histograms", "TOTAL.png"
+        )
         plot_confidence_histogram(total_confidences, conf_output_path, "TOTAL")
 
     recog_output_path = os.path.join(OUTPUT_DIR, "recognition_status", "TOTAL.png")
-    plot_recognition_status(total_recognized, total_unrecognized, recog_output_path, "TOTAL")
+    plot_recognition_status(
+        total_recognized, total_unrecognized, recog_output_path, "TOTAL"
+    )
 
     print(f"Графики успешно созданы и сохранены в {OUTPUT_DIR}")
 

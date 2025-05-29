@@ -3,7 +3,7 @@ import numpy as np
 from utils.preprocess_general import preprocess_general
 
 # Загрузка изображения
-img = cv2.imread('../to_proccess/debug_tables/table_rus_2.png')
+img = cv2.imread("../to_proccess/debug_tables/table_rus_2.png")
 preprocessed = preprocess_general(img)
 
 # Дилатация
@@ -14,7 +14,9 @@ dilated = cv2.dilate(preprocessed, kernel, iterations=2)
 contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 # Сортировка контуров по площади
-contours_sorted = sorted(contours, key=cv2.contourArea, reverse=True)[:2]  # Берем два самых больших
+contours_sorted = sorted(contours, key=cv2.contourArea, reverse=True)[
+    :2
+]  # Берем два самых больших
 
 # Список для хранения вырезанных таблиц
 cropped_tables = []
@@ -34,9 +36,9 @@ for i, contour in enumerate(contours_sorted):
     cropped_tables.append(cropped_table)
 
     # Для отладки: покажем вырезанные таблицы
-    cv2.imshow(f'Table {i + 1}', cropped_table)
+    cv2.imshow(f"Table {i + 1}", cropped_table)
     cv2.waitKey(0)
 
 cv2.destroyAllWindows()
 
-cv2.imwrite('../to_proccess/debug_tables/table_page_1.png', cropped_tables[0])
+cv2.imwrite("../to_proccess/debug_tables/table_page_1.png", cropped_tables[0])

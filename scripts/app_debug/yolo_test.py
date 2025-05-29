@@ -3,7 +3,9 @@ from ultralytics import YOLO
 import cv2
 
 
-def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_threshold=20, debug=False):
+def extract_table_rows(
+    image, model, conf_threshold=0.5, min_y=1500, row_threshold=20, debug=False
+):
     """
     Анализирует изображение таблицы и возвращает отсортированные строки с координатами клеток
 
@@ -31,7 +33,11 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             return []
 
         # Фильтрация клеток
-        mask = (boxes.conf >= conf_threshold) & (boxes.xyxy[:, 1] >= min_y) & (boxes.xyxy[:, 1] <= 3300)
+        mask = (
+            (boxes.conf >= conf_threshold)
+            & (boxes.xyxy[:, 1] >= min_y)
+            & (boxes.xyxy[:, 1] <= 3300)
+        )
         filtered_boxes = boxes[mask]
 
         if debug:
@@ -72,7 +78,9 @@ def extract_table_rows(image, model, conf_threshold=0.5, min_y=1500, row_thresho
             for i, row in enumerate(row_groups, 1):
                 print(f"Строка {i} ({len(row)} клеток):")
                 for j, cell in enumerate(row, 1):
-                    print(f"  Клетка {j}: [{cell[0]:.0f}, {cell[1]:.0f}, {cell[2]:.0f}, {cell[3]:.0f}]")
+                    print(
+                        f"  Клетка {j}: [{cell[0]:.0f}, {cell[1]:.0f}, {cell[2]:.0f}, {cell[3]:.0f}]"
+                    )
 
         print(row_groups)
 
@@ -96,7 +104,7 @@ if __name__ == "__main__":
         conf_threshold=0.5,
         min_y=1500,
         row_threshold=20,
-        debug=True
+        debug=True,
     )
 
     # Визуализация результата
@@ -107,8 +115,15 @@ if __name__ == "__main__":
                 x1, y1, x2, y2 = map(int, cell)
                 color = (0, 255, 0) if row_idx % 2 == 0 else (0, 0, 255)
                 cv2.rectangle(vis_image, (x1, y1), (x2, y2), color, 2)
-                cv2.putText(vis_image, f"{row_idx + 1}", (x1 + 5, y1 + 20),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                cv2.putText(
+                    vis_image,
+                    f"{row_idx + 1}",
+                    (x1 + 5, y1 + 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 255, 255),
+                    2,
+                )
 
         # Масштабирование изображения (например, до ширины 1200 пикселей)
         scale_percent = 30  # Процент от исходного размера

@@ -26,7 +26,9 @@ def preprocess_general(img):
     gray_image = cv2.cvtColor(color_level, cv2.COLOR_BGR2GRAY)
 
     # Бинаризация
-    _, threshold = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, threshold = cv2.threshold(
+        gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
 
     # Инвертирование
     inverted = cv2.bitwise_not(threshold)

@@ -5,10 +5,12 @@ import matplotlib.pyplot as plt
 from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
-from utils.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
+from utils.mnist_preprocess_cell import (
+    preprocess_image,
+)  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
-IMG_PATH = '../to_proccess/cropped_tables/page_1.jpg'
+IMG_PATH = "../to_proccess/cropped_tables/page_1.jpg"
 
 # Загрузка модели MNIST
 model = tf.keras.models.load_model("../mnist_recognation_extendend.h5")
@@ -51,7 +53,9 @@ plot_rec_box_with_logic_info(IMG_PATH, "../table_rec_box.jpg", logic_points, pol
 # Выделение нужных ячеек (вторая строка)
 second_row_cells = []
 for i, logic in enumerate(logic_points):
-    if logic[0] == 1 and logic[1] == 1 or logic[0] == 3 and logic[1] == 3:  # Вторая строка
+    if (
+        logic[0] == 1 and logic[1] == 1 or logic[0] == 3 and logic[1] == 3
+    ):  # Вторая строка
         second_row_cells.append(polygons[i])
 
 # Убираем лишние ячейки (если нужно)
@@ -85,19 +89,23 @@ for i, cell in enumerate(second_row_cells):
         recognized_digits.append(predicted_digit)
 
         # Вывод результата
-        print(f"Ячейка {i + 1}: Распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}")
+        print(
+            f"Ячейка {i + 1}: Распознана цифра {predicted_digit} с вероятностью {predicted_prob:.4f}"
+        )
 
         # Визуализация оригинальной ячейки
         plt.subplot(2, len(second_row_cells), i + 1)
         plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
         plt.title(f"Original {i + 1}")
-        plt.axis('off')
+        plt.axis("off")
 
         # Визуализация обработанной ячейки
         plt.subplot(2, len(second_row_cells), i + 1 + len(second_row_cells))
-        plt.imshow(input_data.reshape(28, 28), cmap='gray')
-        plt.title(f"Processed {i + 1}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}")
-        plt.axis('off')
+        plt.imshow(input_data.reshape(28, 28), cmap="gray")
+        plt.title(
+            f"Processed {i + 1}\nPred: {predicted_digit}\nProb: {predicted_prob:.4f}"
+        )
+        plt.axis("off")
 
 # Отображение графиков
 plt.tight_layout()

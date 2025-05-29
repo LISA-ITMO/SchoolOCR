@@ -15,7 +15,7 @@ def split_pdfs_in_folder(input_folder, output_base_folder=None):
 
     # Проходим по всем PDF-файлам в папке
     for filename in os.listdir(input_folder):
-        if not filename.lower().endswith('.pdf'):
+        if not filename.lower().endswith(".pdf"):
             continue  # Пропускаем не-PDF файлы
 
         pdf_path = os.path.join(input_folder, filename)
@@ -36,7 +36,9 @@ def split_pdfs_in_folder(input_folder, output_base_folder=None):
 
             # Создаем новый PDF с одной страницей
             single_page_pdf = fitz.open()
-            single_page_pdf.insert_pdf(pdf_document, from_page=page_num, to_page=page_num)
+            single_page_pdf.insert_pdf(
+                pdf_document, from_page=page_num, to_page=page_num
+            )
             single_page_pdf.save(output_path)
             single_page_pdf.close()
 

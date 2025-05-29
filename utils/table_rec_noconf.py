@@ -22,7 +22,9 @@ def get_cell_width(cell: List[int]) -> int:
     return cell[2] - cell[0]
 
 
-def filter_cells(table_rows: List[List[List[int]]]) -> Tuple[Optional[List[List[int]]], Optional[List[List[int]]]]:
+def filter_cells(
+    table_rows: List[List[List[int]]],
+) -> Tuple[Optional[List[List[int]]], Optional[List[List[int]]]]:
     """Фильтрует и разделяет ячейки таблицы на две группы (задачи и MNIST-цифры).
 
     Обрабатывает строки таблицы, выделяя ячейки с задачами и ячейки с цифрами.
@@ -55,21 +57,30 @@ def filter_cells(table_rows: List[List[List[int]]]) -> Tuple[Optional[List[List[
         second_cell_width = get_cell_width(table_rows[2][1])
 
         if first_cell_width - second_cell_width > 30:
-            return table_rows[0][1:] + table_rows[2][1:-2], table_rows[1][1:] + table_rows[3][1:-2]
+            return (
+                table_rows[0][1:] + table_rows[2][1:-2],
+                table_rows[1][1:] + table_rows[3][1:-2],
+            )
         else:
-            return table_rows[0][1:] + table_rows[2][:-2], table_rows[1][1:] + table_rows[3][:-2]
+            return (
+                table_rows[0][1:] + table_rows[2][:-2],
+                table_rows[1][1:] + table_rows[3][:-2],
+            )
 
     elif len(table_rows) == 6:
-        return table_rows[1][1:] + table_rows[4][1:-2], table_rows[2][1:] + table_rows[5][1:-2]
+        return (
+            table_rows[1][1:] + table_rows[4][1:-2],
+            table_rows[2][1:] + table_rows[5][1:-2],
+        )
 
     return None, None
 
 
 def recognize_table_all(
-        image: np.ndarray,
-        model_digit: Any,
-        model_yolo: Any,
-        debug: bool = False,
+    image: np.ndarray,
+    model_digit: Any,
+    model_yolo: Any,
+    debug: bool = False,
 ) -> Tuple[Optional[List[str]], Optional[List[Tuple[int, float]]]]:
     """Распознаёт цифры в таблице на изображении с использованием YOLO и MNIST-модели.
 
@@ -113,7 +124,9 @@ def recognize_table_all(
                 i += 1
 
     if len(filtered_cells_mnist) != len(filtered_cells_tasks):
-        print(f"Найдено клеток {len(filtered_cells_mnist)}, Ожидалось {len(filtered_cells_tasks)}")
+        print(
+            f"Найдено клеток {len(filtered_cells_mnist)}, Ожидалось {len(filtered_cells_tasks)}"
+        )
         return None, None
 
     tasks = [str(i) for i in range(1, len(filtered_cells_tasks) + 1)]
@@ -163,12 +176,12 @@ def recognize_table_all(
             plt.subplot(2, len(filtered_cells_mnist), i + 1)
             plt.imshow(cv2.cvtColor(cell_img, cv2.COLOR_BGR2RGB))
             plt.title(f"Original {i + 1}")
-            plt.axis('off')
+            plt.axis("off")
 
             plt.subplot(2, len(filtered_cells_mnist), i + 1 + len(filtered_cells_mnist))
-            plt.imshow(input_data.reshape(28, 28), cmap='gray')
+            plt.imshow(input_data.reshape(28, 28), cmap="gray")
             plt.title(f"Processed {i + 1}\nPred: {digit}\nProb: {prob:.4f}")
-            plt.axis('off')
+            plt.axis("off")
 
     if debug:
         plt.tight_layout()

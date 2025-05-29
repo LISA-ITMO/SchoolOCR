@@ -10,6 +10,19 @@ ERROR_IMAGES_DIR = "proccessed_/processed_lists_docker_rusnew5"
 
 
 def find_error_images():
+    """
+    Finds images with recognition errors and copies them to a dedicated directory.
+
+        This method iterates through processed image folders, checks for errors in the
+        associated JSON files, and if found, copies the corresponding image to the
+        ERROR_IMAGES_DIR. It also prints progress updates and summary statistics.
+
+        Args:
+            None
+
+        Returns:
+            None
+    """
     # Создаем папку для ошибок, если ее нет
     os.makedirs(ERROR_IMAGES_DIR, exist_ok=True)
 
@@ -38,12 +51,12 @@ def find_error_images():
                 continue
 
             # Читаем JSON и проверяем наличие ошибок
-            with open(json_path, 'r', encoding='utf-8') as f:
+            with open(json_path, "r", encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                     if data.get("errors"):
                         # Нашли ошибку - ищем соответствующее изображение
-                        for ext in ['.jpg', '.jpeg', '.png']:
+                        for ext in [".jpg", ".jpeg", ".png"]:
                             img_path = os.path.join(image_dir_path, image_dir + ext)
                             if os.path.exists(img_path):
                                 # Формируем уникальное имя для файла с ошибкой
