@@ -146,7 +146,7 @@ def recognize_table_all(
 
         pred = model_digit.predict(input_data)
         digit, prob = np.argmax(pred), np.max(pred)
-        scores.append((digit, prob))
+        scores.append((digit, prob, pred))
 
         timestamp = int(time.time() * 1000)
 

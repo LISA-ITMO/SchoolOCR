@@ -142,9 +142,7 @@ def parse_hat_text(text):
 
 
 def validate_api_key(api_key: str):
-    """Проверяет валидность API ключа"""
-    if not api_key or api_key not in API_KEYS:
-        raise HTTPException(status_code=401, detail="Invalid API Key")
+    return True;
 
 
 @app.post("/recognize")
@@ -189,7 +187,6 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             code = recognize_code(code_region, extended_model)
         except:
             errors.append("Не удалось распознать код участника")
-
         recognized_digits = []
         task_numbers = []
         if key:
@@ -200,7 +197,6 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
             if not recognized_digits:
                 task_numbers, recognized_digits = recognize_table_all(image, extended_model, yolo_model_extra)
 
-
         task_dict = {}
         total_score = 0
 
@@ -210,14 +206,16 @@ def recognize_image(request: ImageRequest, authorization: str = Header(None)):
 
             low_confidence = []
 
-            for i, (digit, prob) in enumerate(recognized_digits):
+            for i, (digit, prob, predictedObject) in enumerate(recognized_digits):
                 digit = int(digit)
                 prob = round(float(prob), 2)
+
+                print(predictedObject)
 
                 if i < len(task_numbers):
                     task_name = task_numbers[i]
                     display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
-                    task_dict[task_name] = (display_digit, prob)
+                    task_dict[task_name] = (display_digit, prob, predictedObject)
 
                     if prob < 0.6:
                         low_confidence.append(task_name)

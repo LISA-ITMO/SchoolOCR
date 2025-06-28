@@ -64,9 +64,12 @@ def recognize_table(
             print(f"Ошибка обработки ячейки {i + 1}")
             continue
 
-        pred = model_digit.predict(input_data)
-        digit, prob = np.argmax(pred), np.max(pred)
-        results.append((digit, prob))
+        pred = model_digit.predict(input_data).reshape(-1)
+        digit = int(np.argmax(pred))
+        prob = float(np.max(pred))
+        probsAll = {str(i): round(float(p), 2) for i, p in enumerate(pred)}
+
+        results.append((digit, prob, probsAll))
 
         # timestamp = int(time.time() * 1000)
 
