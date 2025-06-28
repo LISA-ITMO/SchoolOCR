@@ -15,6 +15,7 @@ from utils.code_rec import recognize_code
 from utils.table_rec import recognize_table
 from utils.preprocess_general import preprocess_general
 from utils.table_rec_noconf import recognize_table_all
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
@@ -143,6 +144,21 @@ def parse_hat_text(text):
 
 def validate_api_key(api_key: str):
     return True;
+
+@app.get("/", response_class=HTMLResponse)  
+def read_root():  
+    html_content = """  
+    <!DOCTYPE html>  
+    <html>  
+    <head>  
+        <title>API для распознавания титульных листов ВПР работ</title>  
+    </head>  
+    <body>  
+        <h1>API для распознавания титульных листов ВПР работ</h1>
+    </body>  
+    </html>  
+    """  
+    return HTMLResponse(content=html_content)  
 
 
 @app.post("/recognize")
