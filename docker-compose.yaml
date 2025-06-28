@@ -3,13 +3,11 @@ services:
     container_name: fastapi-app
     build:
       context: .
-      dockerfile: Dockerfile
+      args:
+        - BUILD_VERSION
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
     environment:
       - TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
       - PYTHONPATH=/app
-      - OMP_THREAD_LIMIT=2  # Оптимизация многопоточности Tesseract
-    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+      - OMP_THREAD_LIMIT=2

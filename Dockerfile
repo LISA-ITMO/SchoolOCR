@@ -1,5 +1,8 @@
 FROM python:3.11.7-slim-bookworm
 
+ARG BUILD_VERSION=unknown
+ENV APP_VERSION=$BUILD_VERSION
+
 # Обновление пакетов и установка зависимостей
 RUN apt-get update && apt-get install -y \
     wget \
@@ -45,9 +48,7 @@ RUN pip install --no-cache-dir -U pip && \
 # Копирование файлов проекта
 COPY app.py .
 COPY config.json .
-COPY *.keras .
-COPY *.h5 .
-COPY *.pt .
+COPY models/ ./models/
 COPY utils/ ./utils/
 
 RUN chown -R appuser:appuser /app

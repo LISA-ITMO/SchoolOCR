@@ -1,67 +1,67 @@
-name: autodeploy when main push
+name: Deploy when main push
 
 on:
   push:
     branches: [ main ]
 
+env:
+  VM_IP: ${{ secrets.VM_IP }}
+  VM_USER: ${{ secrets.VM_USER }}
+  VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+  PROJECT_PATH: /home/${{ secrets.VM_USER }}/app
+
 jobs:
   deploy:
+    name: Deploy
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      - name: 1. Checkout repository code
+        uses: actions/checkout@v4
 
-      - name: Setup SSH for rsync
+      - name: 2. Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.VM_SSH_KEY }}
+
+      - name: 3. Add remote server to known_hosts
+        run: ssh-keyscan -H ${{ env.VM_IP }} >> ~/.ssh/known_hosts
+
+      - name: 4. Sync files to a server
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
+          rsync -avz --delete \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            --exclude="venv/" \
+            --exclude=".venv/" \
+            --exclude="__pycache__/" \
+            --exclude=".env" \
+            --exclude="*.pyc" \
+            ./ ${{ env.VM_USER }}@${{ env.VM_IP }}:${{ env.PROJECT_PATH }}/
 
-      - name: Rsync project to server
-        run: |
-          rsync -az --delete \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='venv' \
-            --exclude='.venv' \
-            --exclude='__pycache__' \
-            --exclude='.env' \
-            --exclude='*.log' \
-            --exclude='*.pyc' \
-            --exclude='*.swp' \
-            -e "ssh -i ~/.ssh/id_rsa" \
-            ./ ${{ secrets.VM_USER }}@${{ secrets.VM_IP }}:/home/${{ secrets.VM_USER }}/app_new
-
-      - name: Deploy and restart docker-compose on server
+      - name: 5. Rebuild and restart services on server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VM_IP }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
+          host: ${{ env.VM_IP }}
+          username: ${{ env.VM_USER }}
+          key: ${{ env.VM_SSH_KEY }}
+          timeout: 60m
           script: |
             set -e
-            cd /home/${{ secrets.VM_USER }}
-
-            if [ -d app ]; then
-              cd app
-              docker compose down || true
-              cd ..
-            fi
-
-            docker system prune -af || true
-            docker volume prune -f || true
-
-            rm -rf app_old || true
-            mv app app_old 2>/dev/null || true
-            mv app_new app
-
-            cd app
-            docker compose up -d --build
-
+            
+            echo Deployment started on server
+            
+            cd ${{ env.PROJECT_PATH }}
+            
+            echo "-> Building image with verbose output to prevent timeout..."
+            DOCKER_BUILDKIT=1 docker compose build --progress=plain --no-cache
+            
+            echo "-> Restarting containers with the new image..."
+            BUILD_VERSION=${{ github.sha }} docker compose up -d
+            
+            echo "-> Current container status:"
             docker compose ps
-            docker compose logs --tail=20
-
-            cd ..
-            rm -rf app_old || true
-
-            echo "Deploy finished and running!"
+            echo "-> Recent logs:"
+            docker compose logs --tail=50
+            
+            echo Deployment finished!

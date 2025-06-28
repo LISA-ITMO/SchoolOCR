@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 import json
 import re
-import fitz  # PyMuPDF
+import fitz
 from difflib import get_close_matches
 import pytesseract
 from ultralytics import YOLO
@@ -15,9 +15,11 @@ from utils.code_rec import recognize_code
 from utils.table_rec import recognize_table
 from utils.preprocess_general import preprocess_general
 from utils.table_rec_noconf import recognize_table_all
-from fastapi.responses import HTMLResponse
+import os
 
 app = FastAPI()
+
+app_version = os.getenv("APP_VERSION", "unknown")
 
 # Настройка CORS
 app.add_middleware(
@@ -145,20 +147,13 @@ def parse_hat_text(text):
 def validate_api_key(api_key: str):
     return True;
 
-@app.get("/", response_class=HTMLResponse)  
-def read_root():  
-    html_content = """  
-    <!DOCTYPE html>  
-    <html>  
-    <head>  
-        <title>API для распознавания титульных листов ВПР работ</title>  
-    </head>  
-    <body>  
-        <h1>API для распознавания титульных листов ВПР работ</h1>
-    </body>  
-    </html>  
-    """  
-    return HTMLResponse(content=html_content)  
+@app.get("/")
+def read_root():
+    return 'API для распознавания титульных листов ВПР работ'
+
+@app.get("/version")
+def read_version():
+    return {"version": app_version}
 
 
 @app.post("/recognize")
