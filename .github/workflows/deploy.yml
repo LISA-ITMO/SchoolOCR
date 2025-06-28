@@ -10,23 +10,58 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: copy files
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VM_IP }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: "."
-          target: "/home/${{ secrets.VM_USER }}/app"
+      - name: Setup SSH for rsync
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: restart
+      - name: Rsync project to server
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='venv' \
+            --exclude='.venv' \
+            --exclude='__pycache__' \
+            --exclude='.env' \
+            --exclude='*.log' \
+            --exclude='*.pyc' \
+            --exclude='*.swp' \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ./ ${{ secrets.VM_USER }}@${{ secrets.VM_IP }}:/home/${{ secrets.VM_USER }}/app_new
+
+      - name: Deploy and restart docker-compose on server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            cd /home/${{ secrets.VM_USER }}/app
-            docker compose pull
-            docker compose down
+            set -e
+            cd /home/${{ secrets.VM_USER }}
+
+            if [ -d app ]; then
+              cd app
+              docker compose down || true
+              cd ..
+            fi
+
+            docker system prune -af || true
+            docker volume prune -f || true
+
+            rm -rf app_old || true
+            mv app app_old 2>/dev/null || true
+            mv app_new app
+
+            cd app
             docker compose up -d --build
+
+            docker compose ps
+            docker compose logs --tail=20
+
+            cd ..
+            rm -rf app_old || true
+
+            echo "Deploy finished and running!"

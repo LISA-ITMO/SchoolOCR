@@ -31,11 +31,18 @@ RUN mkdir -p /usr/share/tesseract-ocr/tessdata && \
 # Оптимизация многопоточности
 ENV OMP_THREAD_LIMIT=2
 
+
+RUN useradd -ms /bin/bash appuser
+
 # Настройка рабочего каталога
 WORKDIR /app
 
+COPY requirements.txt ./
+
+RUN pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir -r requirements.txt
+
 # Копирование файлов проекта
-COPY requirements.txt .
 COPY app.py .
 COPY config.json .
 COPY *.keras .
@@ -43,9 +50,9 @@ COPY *.h5 .
 COPY *.pt .
 COPY utils/ ./utils/
 
-# Установка Python-зависимостей
-RUN pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN chown -R appuser:appuser /app
+
+USER appuser
 
 # Запуск приложения
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
