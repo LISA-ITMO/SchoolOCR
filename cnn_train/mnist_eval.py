@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import shutil
-from utils.mnist_preprocess_cell import preprocess_image
+from recognizers.mnist_preprocess_cell import preprocess_image
 
 # Загрузка модели
 model = tf.keras.models.load_model('./mnist_with_x_model.keras')  # Убедитесь, что модель в той же папке

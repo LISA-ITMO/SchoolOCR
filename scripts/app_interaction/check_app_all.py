@@ -11,8 +11,8 @@ SERVER_URL = "http://localhost:8000/recognize"
 API_KEY = ""
 
 # Пути к папкам
-INPUT_ROOT_DIR = "../check_school/Okasana"  # Корневая папка с подпапками для обработки
-PROCESSED_LISTS_DIR = "../check_school/Okasana_proccessed"  # Папка для сохранения результатов
+INPUT_ROOT_DIR = "../to_proccess/scans_jpg/"  # Корневая папка с подпапками для обработки
+PROCESSED_LISTS_DIR = "../proccessed_/processed_lists_docker_all_refactored"  # Папка для сохранения результатов
 
 
 class RequestStats:

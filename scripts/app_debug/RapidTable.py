@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from wired_table_rec.utils_table_recover import plot_rec_box_with_logic_info
 from wired_table_rec import WiredTableRecognition
 
-from utils.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
+from recognizers.mnist_preprocess_cell import preprocess_image  # Импортируем новую функцию препроцессинга
 
 # Путь к изображению таблицы
 IMG_PATH = '../to_proccess/cropped_tables/page_1.jpg'

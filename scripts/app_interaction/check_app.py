@@ -11,8 +11,8 @@ SERVER_URL = "http://localhost:8000/recognize"
 API_KEY = ""
 
 # Пути к папкам
-INPUT_IMAGES_DIR = "../to_proccess/help_imgs/litr_new"
-PROCESSED_LISTS_DIR = "../proccessed_/processed_lists_docker_litrnew"
+INPUT_IMAGES_DIR = "../to_proccess/output_images"
+PROCESSED_LISTS_DIR = "../proccessed_/processed_lists_docker_math5"
 
 
 class RequestStats:

@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from utils.preprocess_general import preprocess_general
+from recognizers.preprocess_general import preprocess_general
 
 # Загрузка изображения
 img = cv2.imread('../to_proccess/debug_tables/table_rus_2.png')

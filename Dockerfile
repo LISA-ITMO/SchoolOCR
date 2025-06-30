@@ -41,7 +41,7 @@ COPY config.json .
 COPY *.keras .
 COPY *.h5 .
 COPY *.pt .
-COPY utils/ ./utils/
+COPY recognizers/ ./utils/
 
 # Установка Python-зависимостей
 RUN pip install --no-cache-dir -U pip && \

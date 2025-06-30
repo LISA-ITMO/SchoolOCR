@@ -7,9 +7,9 @@ import numpy as np
 from difflib import get_close_matches
 import pytesseract
 import fitz  # PyMuPDF
-from utils.code_rec import recognize_code
-from utils.table_rec import recognize_table
-from utils.table_rec_noconf import recognize_table_all
+from recognizers.code_rec import recognize_code
+from recognizers.table_rec import recognize_table
+from recognizers.table_rec_noconf import recognize_table_all
 from ultralytics import YOLO
 
 IMG_PATH = "../to_proccess/Сканы титульников/русс яз 4 кл/Русский язык 4-1.pdf"

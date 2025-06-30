@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Путь к папке с JSON-файлами
-JSON_DIR = "../check_school/Nailya_proccessed"
+JSON_DIR = "../proccessed_/processed_lists_docker_all"
 OUTPUT_DIR = os.path.join(JSON_DIR, "analytics")
 
 # Создаем структуру папок для сохранения графиков
