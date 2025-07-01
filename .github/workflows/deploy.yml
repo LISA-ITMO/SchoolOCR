@@ -49,19 +49,31 @@ jobs:
           script: |
             set -e
             
-            echo Deployment started on server
+            echo "Deployment started on server"
             
             cd ${{ env.PROJECT_PATH }}
-            
-            echo "-> Building image with verbose output to prevent timeout..."
-            DOCKER_BUILDKIT=1 docker compose build --progress=plain --no-cache
+
+            echo "-> Starting keep-alive process..."
+            while sleep 60; do echo "[Keep-Alive] Build is still in progress..."; done &
+            KEEPALIVE_PID=$!
+            trap 'kill $KEEPALIVE_PID' EXIT
+
+            echo "-> Building image with cache enabled..."
+            DOCKER_BUILDKIT=1 docker compose build --pull --progress=plain
             
             echo "-> Restarting containers with the new image..."
             BUILD_VERSION=${{ github.sha }} docker compose up -d
             
+            echo "-> Build finished, stopping keep-alive process."
+            kill $KEEPALIVE_PID
+            trap - EXIT
+
+            echo "-> Cleaning up old images..."
+            docker image prune -f
+
             echo "-> Current container status:"
             docker compose ps
             echo "-> Recent logs:"
             docker compose logs --tail=50
             
-            echo Deployment finished!
+            echo "Deployment finished!"
