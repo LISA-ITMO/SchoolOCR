@@ -19,7 +19,7 @@ import os
 
 app = FastAPI()
 
-app_version = os.getenv("APP_VERSION", "unknown")
+app_version = os.getenv("BUILD_VERSION", "meow")
 
 # Настройка CORS
 app.add_middleware(

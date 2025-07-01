@@ -14,12 +14,13 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 90
+
     steps:
       - name: 1. Checkout repository code
         uses: actions/checkout@v4
 
-      - name: 2. Setup SSH
+      - name: 2. Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ env.VM_SSH_KEY }}
@@ -27,7 +28,7 @@ jobs:
       - name: 3. Add remote server to known_hosts
         run: ssh-keyscan -H ${{ env.VM_IP }} >> ~/.ssh/known_hosts
 
-      - name: 4. Sync files to a server
+      - name: 4. Sync files to the server via rsync
         run: |
           rsync -avz --delete \
             --exclude=".git/" \
@@ -39,41 +40,35 @@ jobs:
             --exclude="*.pyc" \
             ./ ${{ env.VM_USER }}@${{ env.VM_IP }}:${{ env.PROJECT_PATH }}/
 
-      - name: 5. Rebuild and restart services on server
+      - name: 5. Build and deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.VM_IP }}
           username: ${{ env.VM_USER }}
           key: ${{ env.VM_SSH_KEY }}
-          timeout: 60m
+          timeout: 70m
           script: |
             set -e
-            
-            echo "Deployment started on server"
-            
+
+            echo "::notice:: Starting deployment on server..."
             cd ${{ env.PROJECT_PATH }}
 
-            echo "-> Starting keep-alive process..."
-            while sleep 60; do echo "[Keep-Alive] Build is still in progress..."; done &
-            KEEPALIVE_PID=$!
-            trap 'kill $KEEPALIVE_PID' EXIT
+            echo "::notice:: Building image (max 60min)..."
+            if ! timeout 60m bash -c 'export DOCKER_BUILDKIT=1 && docker compose build --pull --progress=plain'; then
+              echo "::error:: Docker build timed out"
+              exit 1
+            fi
 
-            echo "-> Building image with cache enabled..."
-            DOCKER_BUILDKIT=1 docker compose build --pull --progress=plain
-            
-            echo "-> Restarting containers with the new image..."
+            echo "::notice:: Restarting containers with new image..."
             BUILD_VERSION=${{ github.sha }} docker compose up -d
-            
-            echo "-> Build finished, stopping keep-alive process."
-            kill $KEEPALIVE_PID
-            trap - EXIT
 
-            echo "-> Cleaning up old images..."
+            echo "::notice:: Cleaning up old Docker images..."
             docker image prune -f
 
-            echo "-> Current container status:"
+            echo "::notice:: Current container status:"
             docker compose ps
-            echo "-> Recent logs:"
+
+            echo "::notice:: Recent logs:"
             docker compose logs --tail=50
-            
-            echo "Deployment finished!"
+
+            echo "::notice:: ✅ Deployment finished successfully"
