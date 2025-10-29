@@ -34,6 +34,7 @@ def extract_table_rows(
         y_centers = (xyxy[:, 1] + xyxy[:, 3]) / 2
         sorted_indices = np.argsort(y_centers)
         sorted_boxes = xyxy[sorted_indices]
+        print(sorted_boxes)
 
         # Группировка в строки по Y
         row_groups = []

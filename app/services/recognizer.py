@@ -1,4 +1,3 @@
-import base64
 from fastapi import HTTPException
 
 from app.config import config
@@ -7,15 +6,22 @@ from app.services.image_utils import decode_image
 from app.services.header_recognizer import try_extract_subject_grade_variant
 from app.services.code_recognizer import recognize_code_from_image
 from app.services.table_recognizer import recognize_scores_table
+from io import BytesIO
 
 
-def recognize_document(request):
+def convertToJpeg(im):
+    with BytesIO() as f:
+        im.save(f, format='JPEG')
+        return f.getvalue()
+    
+def recognize_document(image_png):
     errors = []
     warnings = []
 
     try:
-        image_data = base64.b64decode(request.image_base64)
-        image = decode_image(image_data)
+        bytesJpeg = convertToJpeg(image_png)
+        image = decode_image(bytesJpeg)
+        print(image)
 
         subject, grade, variant = try_extract_subject_grade_variant(image, config)
         if not subject or not grade:
