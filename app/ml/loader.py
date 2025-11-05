@@ -1,8 +1,8 @@
 import tensorflow as tf
 from ultralytics import YOLO
 
-MNIST_MODEL_PATH = "./app/weights/mnist_model.keras"
-EXTENDED_MODEL_PATH = "./app/weights/mnist_recognation_extendend.h5"
+MNIST_MODEL_PATH = "./app/weights/best_model_balanced.h5"
+EXTENDED_MODEL_PATH = "./app/weights/best_model_balanced.h5"
 YOLO_MAIN_PATH = "./app/weights/cell_detect.pt"
 YOLO_EXTRA_PATH = "./app/weights/cell_detect_extra.pt"
 

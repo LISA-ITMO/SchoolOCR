@@ -1,6 +1,5 @@
 from typing import List, Tuple, Optional, Any
 import numpy as np
-import cv2
 
 from app.detection.yolo_cells import extract_table_rows
 from app.preprocessing.cell_digit import preprocess_cell_image
@@ -41,7 +40,6 @@ def recognize_table_all(
     image: np.ndarray,
     model_digit: Any,
     model_yolo: Any,
-    debug: bool = False
 ) -> Tuple[Optional[List[str]], Optional[List[Tuple[int, float, dict]]]]:
     """
     Распознаёт таблицу целиком: номера заданий + оценки без использования конфигурации.
