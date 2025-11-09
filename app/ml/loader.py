@@ -1,10 +1,15 @@
+import os
 import tensorflow as tf
 from ultralytics import YOLO
 
-MNIST_MODEL_PATH = "./app/weights/best_model_balanced.h5"
-EXTENDED_MODEL_PATH = "./app/weights/best_model_balanced.h5"
-YOLO_MAIN_PATH = "./app/weights/cell_detect.pt"
-YOLO_EXTRA_PATH = "./app/weights/cell_detect_extra.pt"
+# Определяем абсолютные пути
+current_dir = os.path.dirname(__file__)
+project_root = os.path.dirname(current_dir)
+
+MNIST_MODEL_PATH = os.path.join(project_root, "weights", "best_model_balanced.h5")
+EXTENDED_MODEL_PATH = os.path.join(project_root, "weights", "best_model_balanced.h5")
+YOLO_MAIN_PATH = os.path.join(project_root, "weights", "cell_detect.pt")
+YOLO_EXTRA_PATH = os.path.join(project_root, "weights", "cell_detect_extra.pt")
 
 _mnist_model = None
 _extended_model = None

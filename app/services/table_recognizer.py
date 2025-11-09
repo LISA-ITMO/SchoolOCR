@@ -1,38 +1,125 @@
-from typing import Optional, Tuple, List
 import numpy as np
+from typing import List, Tuple, Optional, Any, Dict
 
-from app.services.table_fallback import recognize_table_all
-from app.ml.loader import get_extended_model, get_yolo_model, get_yolo_model_extra
+from app.detection.yolo_cells import extract_table_rows
+from app.services.cell_recognizer import CellRecognizer
+from app.ml.loader import get_yolo_model, get_yolo_model_extra
 
 
-def recognize_scores_table(image: np.ndarray) -> Tuple[Optional[dict], int, Optional[List[str]]]:
-    model = get_extended_model()
-    yolo = get_yolo_model()
-    yolo_extra = get_yolo_model_extra()
+class TableRecognizer:
+    def __init__(self, debug: bool = False):
+        self.yolo = get_yolo_model()
+        self.yolo_extra = get_yolo_model_extra()
+        self.cell_recognizer = CellRecognizer(debug)
 
-    task_numbers, recognized_digits = recognize_table_all(image, model, yolo)
-    if not recognized_digits:
-        task_numbers, recognized_digits = recognize_table_all(image, model, yolo_extra)
+    def _get_cell_width(self, cell: List[int]) -> int:
+        return cell[2] - cell[0]
 
-    task_dict = {}
-    total_score = 0
-    low_confidence = []
+    def _filter_cells(self, table_rows: List[List[List[int]]]) -> Tuple[
+        Optional[List[List[int]]], Optional[List[List[int]]]]:
+        if len(table_rows) % 2 != 0:
+            table_rows = [row for row in table_rows if len(row) > 3]
+            if len(table_rows) % 2 != 0:
+                return None, None
 
-    if not recognized_digits:
-        return None, 0, None
+        if len(table_rows) == 2:
+            return table_rows[0][1:-2], table_rows[1][1:-2]
 
-    for i, (digit, prob, pred_obj) in enumerate(recognized_digits):
-        digit = int(digit)
-        prob = round(float(prob), 2)
+        elif len(table_rows) == 4:
+            first_cell_width = self._get_cell_width(table_rows[2][0])
+            second_cell_width = self._get_cell_width(table_rows[2][1])
 
-        task_name = task_numbers[i] if i < len(task_numbers) else str(i + 1)
-        display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
-        task_dict[task_name] = (display_digit, prob, pred_obj)
+            if first_cell_width - second_cell_width > 30:
+                return table_rows[0][1:] + table_rows[2][1:-2], table_rows[1][1:] + table_rows[3][1:-2]
+            else:
+                return table_rows[0][1:] + table_rows[2][:-2], table_rows[1][1:] + table_rows[3][:-2]
 
-        if prob < 0.6:
-            low_confidence.append(task_name)
+        elif len(table_rows) == 6:
+            return table_rows[1][1:] + table_rows[4][1:-2], table_rows[2][1:] + table_rows[5][1:-2]
 
-        if digit not in [10, 11]:
-            total_score += digit
+        return None, None
 
-    return task_dict, total_score, low_confidence or None
+    def _extract_cell_images(self, image: np.ndarray, cells: List[List[int]]) -> List[np.ndarray]:
+        """Извлекает изображения ячеек из таблицы"""
+        cell_images = []
+        for cell in cells:
+            x1, y1, x2, y2 = map(int, cell)
+            cell_img = image[y1:y2, x1:x2]
+            cell_images.append(cell_img)
+        return cell_images
+
+    def _recognize_table_all(self, image: np.ndarray, model_yolo: Any) -> Tuple[
+        Optional[List[str]], Optional[List[Tuple[int, float, dict]]]]:
+        table_rows = extract_table_rows(image, model_yolo)
+        filtered_cells_tasks, filtered_cells_mnist = self._filter_cells(table_rows)
+
+        if not filtered_cells_mnist or not filtered_cells_tasks:
+            return None, None
+
+        if len(filtered_cells_mnist) != len(filtered_cells_tasks):
+            i = 0
+            while i < len(filtered_cells_mnist) - 1:
+                current_x = filtered_cells_mnist[i][0]
+                next_x = filtered_cells_mnist[i + 1][0]
+                if abs(next_x - current_x) <= 50:
+                    filtered_cells_mnist.pop(i + 1)
+                else:
+                    i += 1
+
+        if len(filtered_cells_mnist) != len(filtered_cells_tasks):
+            return None, None
+
+        tasks = [str(i + 1) for i in range(len(filtered_cells_tasks))]
+
+        # Извлекаем изображения ячеек
+        cell_images = self._extract_cell_images(image, filtered_cells_mnist)
+
+        # Распознаем все ячейки
+        recognition_results = self.cell_recognizer.recognize_multiple_cells(cell_images, tasks)
+
+        # Форматируем результаты
+        scores = []
+        for (digit, prob, prob_all), task_name in zip(recognition_results, tasks):
+            if digit is not None:
+                scores.append((digit, prob, prob_all))
+            else:
+                # Если распознавание не удалось, добавляем заглушку
+                scores.append((0, 0.0, {}))
+
+        return tasks, scores
+
+    def recognize_scores_table(self, image: np.ndarray) -> Tuple[Optional[dict], int, Optional[List[str]]]:
+        # Сбрасываем debug данные перед новым распознаванием
+        if self.cell_recognizer.debug:
+            self.cell_recognizer.reset_debug_data()
+
+        task_numbers, recognized_digits = self._recognize_table_all(image, self.yolo)
+        if not recognized_digits:
+            task_numbers, recognized_digits = self._recognize_table_all(image, self.yolo_extra)
+
+        # Показываем debug график если включен режим отладки
+        if self.cell_recognizer.debug:
+            self.cell_recognizer.show_debug_plot()
+
+        task_dict = {}
+        total_score = 0
+        low_confidence = []
+
+        if not recognized_digits:
+            return None, 0, None
+
+        for i, (digit, prob, pred_obj) in enumerate(recognized_digits):
+            digit = int(digit)
+            prob = round(float(prob), 2)
+
+            task_name = task_numbers[i] if i < len(task_numbers) else str(i + 1)
+            display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
+            task_dict[task_name] = (display_digit, prob, pred_obj)
+
+            if prob < 0.6:
+                low_confidence.append(task_name)
+
+            if digit not in [10, 11]:
+                total_score += digit
+
+        return task_dict, total_score, low_confidence or None
