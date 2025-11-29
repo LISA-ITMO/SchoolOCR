@@ -27,7 +27,7 @@ def main():
         image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
         # Создаем распознаватель с включенным debug
-        recognizer = TableRecognizer(debug=True)
+        recognizer = TableRecognizer(debug=True, save_cells=True, save_dir="./output_cells")
 
         # Распознаем
         result = recognizer.recognize_scores_table(image)

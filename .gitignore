@@ -190,3 +190,7 @@ cython_debug/
 
 api_keys.json
 .idea
+/scripts/app_interaction/output_cells/
+/scripts/app_interaction/extracted_cells/
+/scripts/app_interaction/organized_cells/
+/scripts/app_interaction/data/organized_cells/
