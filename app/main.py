@@ -1,4 +1,5 @@
 from app.db.Db import Db
+from app.db.MinioClient import MinioClient
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -13,7 +14,9 @@ import base64
 import asyncio
 
 app = FastAPI(title="VPR Recognition API", version=app_version)
+
 db_instance = Db()
+minio_client = MinioClient()
 
 
 app.add_middleware(

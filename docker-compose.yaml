@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   app:
     container_name: fastapi-app
@@ -16,6 +18,14 @@ services:
       - POSTGRES_DB=postgres_db
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=vpr-logs
+    depends_on:
+      - db
+      - minio
+
   db:
     image: postgres
     restart: always
@@ -26,11 +36,24 @@ services:
       POSTGRES_DB: postgres_db
     ports:
       - "5432:5432"
-    depends_on:
-      - app
 
   adminer:
     image: adminer
     restart: always
     ports:
-      - 5050:8080
+      - "5050:8080"
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+volumes:
+  minio_data:
