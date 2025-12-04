@@ -1,3 +1,4 @@
+from app.db.Db import Db
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -12,6 +13,8 @@ import base64
 import asyncio
 
 app = FastAPI(title="VPR Recognition API", version=app_version)
+db_instance = Db()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,8 +33,8 @@ def is_pdf(file_header: bytes) -> bool:
 
 def is_image(file_header: bytes) -> bool:
     image_signatures = [
-        b'\xff\xd8\xff',  # JPEG
-        b'\x89PNG\r\n\x1a\n',  # PNG
+        b"\xff\xd8\xff",  # JPEG
+        b"\x89PNG\r\n\x1a\n",  # PNG
     ]
     return any(file_header.startswith(sig) for sig in image_signatures)
 
@@ -48,10 +51,23 @@ def version():
 
 @app.post("/recognize")
 async def recognize(file: UploadFile = File(...)):
-    allowed_pdf_types = {"application/pdf", "application/x-pdf", "application/octet-stream"}
-    allowed_image_types = {"image/jpeg", "image/png", "image/gif", "image/bmp", "image/tiff"}
+    allowed_pdf_types = {
+        "application/pdf",
+        "application/x-pdf",
+        "application/octet-stream",
+    }
+    allowed_image_types = {
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/tiff",
+    }
 
-    content_type_ok = (file.content_type in allowed_pdf_types or file.content_type in allowed_image_types)
+    content_type_ok = (
+        file.content_type in allowed_pdf_types
+        or file.content_type in allowed_image_types
+    )
 
     header = await file.read(12)
     await file.seek(0)
@@ -60,7 +76,7 @@ async def recognize(file: UploadFile = File(...)):
     if not (content_type_ok or magic_ok):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ожидается PDF-файл или изображение (JPEG, PNG, GIF, BMP, TIFF). Проверьте формат и попробуйте снова."
+            detail="Ожидается PDF-файл или изображение (JPEG, PNG, GIF, BMP, TIFF). Проверьте формат и попробуйте снова.",
         )
 
     data = await file.read()
@@ -71,14 +87,14 @@ async def recognize(file: UploadFile = File(...)):
             images = convert_from_bytes(data)
         else:
             image = Image.open(io.BytesIO(data))
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            if image.mode != "RGB":
+                image = image.convert("RGB")
             images = [image]
 
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён."
+            detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён.",
         )
 
     for image in images:
@@ -93,10 +109,23 @@ async def recognize(file: UploadFile = File(...)):
 
 @app.post("/recognize/stream")
 async def recognize_stream(file: UploadFile = File(...)):
-    allowed_pdf_types = {"application/pdf", "application/x-pdf", "application/octet-stream"}
-    allowed_image_types = {"image/jpeg", "image/png", "image/gif", "image/bmp", "image/tiff"}
+    allowed_pdf_types = {
+        "application/pdf",
+        "application/x-pdf",
+        "application/octet-stream",
+    }
+    allowed_image_types = {
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/tiff",
+    }
 
-    content_type_ok = (file.content_type in allowed_pdf_types or file.content_type in allowed_image_types)
+    content_type_ok = (
+        file.content_type in allowed_pdf_types
+        or file.content_type in allowed_image_types
+    )
 
     header = await file.read(12)
     await file.seek(0)
@@ -105,7 +134,7 @@ async def recognize_stream(file: UploadFile = File(...)):
     if not (content_type_ok or magic_ok):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ожидается PDF-файл или изображение (JPEG, PNG, GIF, BMP, TIFF). Проверьте формат и попробуйте снова."
+            detail="Ожидается PDF-файл или изображение (JPEG, PNG, GIF, BMP, TIFF). Проверьте формат и попробуйте снова.",
         )
 
     data = await file.read()
@@ -115,13 +144,13 @@ async def recognize_stream(file: UploadFile = File(...)):
             images = convert_from_bytes(data)
         else:
             image = Image.open(io.BytesIO(data))
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            if image.mode != "RGB":
+                image = image.convert("RGB")
             images = [image]
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён."
+            detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён.",
         )
 
     async def gen():

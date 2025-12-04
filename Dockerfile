@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.11.7-slim-bookworm
 
 ARG BUILD_VERSION=unknown
@@ -30,9 +31,16 @@ RUN useradd -ms /bin/bash appuser
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+COPY requirements-base.txt .
+COPY requirements-ml.txt .
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r requirements-base.txt
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements-ml.txt
+
 
 COPY app/ ./app
 

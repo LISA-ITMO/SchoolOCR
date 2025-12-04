@@ -11,3 +11,26 @@ services:
       - TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
       - PYTHONPATH=/app
       - OMP_THREAD_LIMIT=2
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=postgres_password
+      - POSTGRES_DB=postgres_db
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: postgres_db
+    ports:
+      - "5432:5432"
+    depends_on:
+      - app
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 5050:8080
