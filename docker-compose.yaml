@@ -11,7 +11,18 @@ services:
       - TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
       - PYTHONPATH=/app
       - OMP_THREAD_LIMIT=2
-
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=postgres_password
+      - POSTGRES_DB=postgres_db
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=vpr-logs
+    depends_on:
+      - db
+      - minio
   ollama:
     image: ollama/ollama
     runtime: nvidia
@@ -24,3 +35,35 @@ services:
       - ./ollama_interaction:/root/.ollama_interaction
       - ./ollama_entrypoint.sh:/root/ollama_entrypoint.sh
     entrypoint: /root/ollama_entrypoint.sh
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: postgres_db
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "5050:8080"
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+volumes:
+  minio_data:
