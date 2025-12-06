@@ -35,6 +35,7 @@ services:
       - ./ollama_interaction:/root/.ollama_interaction
       - ./ollama_entrypoint.sh:/root/ollama_entrypoint.sh
     entrypoint: /root/ollama_entrypoint.sh
+    profiles: ["ollama"]
 
   db:
     image: postgres
