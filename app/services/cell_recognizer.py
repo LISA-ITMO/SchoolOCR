@@ -2,45 +2,85 @@ import numpy as np
 from typing import Tuple, Optional, Dict, Any
 import cv2
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 from app.preprocessing.cell_digit import preprocess_cell_image
 from app.ml.loader import get_extended_model
+from app.ollama_interaction.recognize_digit import classify_image_api
+
+
+@dataclass
+class CellResult:
+    """Результат распознавания ячейки"""
+    digit: Optional[int] = None
+    prob: float = 0.0
+    prob_all: Dict[str, float] = None
+    llm_digit: Optional[str] = None
+    llm_used: bool = False
+    task_name: Optional[str] = None
 
 
 class CellRecognizer:
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False, use_llm: bool = False):
         self.model = get_extended_model()
         self.debug = debug
+        self.use_llm = use_llm
         self.cell_images = []
         self.processed_images = []
         self.digits = []
         self.probabilities = []
         self.tasks = []
 
-    def recognize_cell(self, cell_img: np.ndarray, task_name: str) -> Tuple[Optional[int], float, Dict[str, float]]:
+    def recognize_cell(self, cell_img: np.ndarray, task_name: str) -> CellResult:
+        result = CellResult(task_name=task_name)
+
         if cell_img.size == 0:
             print(f"Ячейка {task_name}: пустая область, пропуск.")
-            return None, 0.0, {}
+            return result
 
         input_data, processed_img = preprocess_cell_image(cell_img)
         if input_data is None:
             print(f"Ячейка {task_name}: не удалось обработать изображение.")
-            return None, 0.0, {}
+            return result
 
         pred = self.model.predict(input_data)
-        digit = int(np.argmax(pred))
-        prob = float(np.max(pred))
+        model_digit = int(np.argmax(pred))
+        model_prob = float(np.max(pred))
         prob_all = {str(i): round(float(p), 2) for i, p in enumerate(pred.reshape(-1))}
 
-        print(f"Ячейка {task_name}: распознана цифра {digit} с вероятностью {prob:.4f}")
+        result.digit = model_digit
+        result.prob = model_prob
+        result.prob_all = prob_all
+
+        if self.use_llm and model_prob < 0.6:
+            try:
+                success, buffer = cv2.imencode('.png', cell_img)
+                if success:
+                    llm_result = classify_image_api(buffer.tobytes())
+
+                    if llm_result != "unknown" and llm_result is not None:
+                        result.llm_used = True
+                        result.llm_digit = llm_result
+
+                        llm_to_digit = {
+                            '0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
+                            '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+                            'x': 11, 'X': 11
+                        }
+
+                        if llm_result in llm_to_digit:
+                            result.digit = llm_to_digit[llm_result]
+                            result.prob = 0.7
+            except Exception as e:
+                print(f"Ошибка LLM для ячейки {task_name}: {e}")
 
         if self.debug:
             self.cell_images.append(cell_img)
             self.processed_images.append(processed_img)
-            self.digits.append(digit)
-            self.probabilities.append(prob)
+            self.digits.append(result.digit)
+            self.probabilities.append(result.prob)
             self.tasks.append(task_name)
 
-        return digit, prob, prob_all
+        return result
 
     def recognize_multiple_cells(self, cell_images: list, task_names: list) -> list:
         results = []

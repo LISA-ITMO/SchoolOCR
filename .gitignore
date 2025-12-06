@@ -194,3 +194,4 @@ api_keys.json
 /scripts/app_interaction/extracted_cells/
 /scripts/app_interaction/organized_cells/
 /scripts/app_interaction/data/organized_cells/
+/ollama/

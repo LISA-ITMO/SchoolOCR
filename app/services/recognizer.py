@@ -10,12 +10,12 @@ from app.services.table_recognizer import TableRecognizer
 
 
 class DocumentRecognizer:
-    def __init__(self):
+    def __init__(self, use_llm: bool = False):
         self.config = config
         self.model = get_extended_model()
         self.header_recognizer = HeaderRecognizer(self.config)
         self.code_recognizer = CodeRecognizer(self.model, self.config)
-        self.table_recognizer = TableRecognizer()
+        self.table_recognizer = TableRecognizer(use_llm=use_llm)
 
     def _convert_to_jpeg(self, im):
         with BytesIO() as f:
@@ -38,7 +38,7 @@ class DocumentRecognizer:
             if not code:
                 errors.append("Не удалось распознать код участника")
 
-            task_dict, total_score, low_confidence = self.table_recognizer.recognize_scores_table(image)
+            task_dict, task_dict_prob_details, total_score, low_confidence = self.table_recognizer.recognize_scores_table(image)
             if task_dict is None:
                 errors.append("Не удалось распознать таблицу")
             elif low_confidence:
@@ -51,6 +51,7 @@ class DocumentRecognizer:
                 "participant_code": code,
                 "total_score": total_score,
                 "scores": task_dict,
+                "scores_details": task_dict_prob_details,
                 "errors": errors if errors else None,
                 "warnings": warnings if warnings else None
             }

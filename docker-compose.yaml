@@ -11,3 +11,16 @@ services:
       - TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
       - PYTHONPATH=/app
       - OMP_THREAD_LIMIT=2
+
+  ollama:
+    image: ollama/ollama
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - OLLAMA_GPU=1
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_interaction:/root/.ollama_interaction
+      - ./ollama_entrypoint.sh:/root/ollama_entrypoint.sh
+    entrypoint: /root/ollama_entrypoint.sh
