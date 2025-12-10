@@ -27,12 +27,23 @@ class Db:
             cursor = connection.cursor()
             cursor.execute(
                 """CREATE TABLE IF NOT EXISTS recognize_logs 
-                (id serial PRIMARY KEY, cell_img text, cell_img_after_preprocessing text, recognize_result text);"""
+                (id serial PRIMARY KEY, cell_img text, cell_img_after_preprocessing text, 
+                recognize_result text, recognation_accuracy text, recognation_detail jsonb);"""
             )
             connection.commit()
-            connection.close()
+            cursor.close()
         except Exception as e:
             print(f"Ошибка при инициализации таблицы recognize_logs: {e}")
+
+    def query(self, queryString, params):
+        try:
+            connection = self.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(queryString, params)
+            connection.commit()
+            cursor.close()
+        except Exception:
+            print("Ошибка при исполнении запроса в БД")
 
     def init(self):
         self.init_recognize_logs_table()

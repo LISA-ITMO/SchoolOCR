@@ -1,16 +1,18 @@
 import numpy as np
-from typing import Tuple, Optional, Dict, Any
+from typing import Optional, Dict
 import cv2
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from app.preprocessing.cell_digit import preprocess_cell_image
 from app.ml.loader import get_extended_model
 from app.ollama_interaction.recognize_digit import classify_image_api
+from app.services.recognize_logger import RecognizeLogger
 
 
 @dataclass
 class CellResult:
     """Результат распознавания ячейки"""
+
     digit: Optional[int] = None
     prob: float = 0.0
     prob_all: Dict[str, float] = None
@@ -47,13 +49,29 @@ class CellRecognizer:
         model_prob = float(np.max(pred))
         prob_all = {str(i): round(float(p), 2) for i, p in enumerate(pred.reshape(-1))}
 
+        full_detail = {
+            str(i): round(float(p), 100) for i, p in enumerate(pred.reshape(-1))
+        }
+
+        try:
+            recognize_logger = RecognizeLogger()
+            recognize_logger.log(
+                initial_image=cell_img,
+                preprocessed_image=processed_img,
+                recognation_result=model_digit,
+                recognation_accuracy=model_prob * 100,
+                recognation_detail=full_detail,
+            )
+        except Exception as e:
+            print("Ошибка логирования:", e)
+
         result.digit = model_digit
         result.prob = model_prob
         result.prob_all = prob_all
 
         if self.use_llm and model_prob < 0.6:
             try:
-                success, buffer = cv2.imencode('.png', cell_img)
+                success, buffer = cv2.imencode(".png", cell_img)
                 if success:
                     llm_result = classify_image_api(buffer.tobytes())
 
@@ -62,9 +80,18 @@ class CellRecognizer:
                         result.llm_digit = llm_result
 
                         llm_to_digit = {
-                            '0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
-                            '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-                            'x': 11, 'X': 11
+                            "0": 0,
+                            "1": 1,
+                            "2": 2,
+                            "3": 3,
+                            "4": 4,
+                            "5": 5,
+                            "6": 6,
+                            "7": 7,
+                            "8": 8,
+                            "9": 9,
+                            "x": 11,
+                            "X": 11,
                         }
 
                         if llm_result in llm_to_digit:
@@ -100,19 +127,25 @@ class CellRecognizer:
             # Оригинальное изображение
             plt.subplot(3, num_cells, i + 1)
             if len(self.cell_images[i].shape) == 2:
-                plt.imshow(self.cell_images[i], cmap='gray')
+                plt.imshow(self.cell_images[i], cmap="gray")
             else:
                 plt.imshow(cv2.cvtColor(self.cell_images[i], cv2.COLOR_BGR2RGB))
             plt.title(f"Original {self.tasks[i]}")
-            plt.axis('off')
+            plt.axis("off")
 
             # Предобработанное изображение
             plt.subplot(3, num_cells, num_cells + i + 1)
-            plt.imshow(self.processed_images[i], cmap='gray')
+            plt.imshow(self.processed_images[i], cmap="gray")
 
-            digit_label = '-' if self.digits[i] == 10 else ('x' if self.digits[i] == 11 else str(self.digits[i]))
-            plt.title(f"Processed {self.tasks[i]}\nPred: {digit_label}\nProb: {self.probabilities[i]:.4f}")
-            plt.axis('off')
+            digit_label = (
+                "-"
+                if self.digits[i] == 10
+                else ("x" if self.digits[i] == 11 else str(self.digits[i]))
+            )
+            plt.title(
+                f"Processed {self.tasks[i]}\nPred: {digit_label}\nProb: {self.probabilities[i]:.4f}"
+            )
+            plt.axis("off")
 
             # Вероятности всех классов
             plt.subplot(3, num_cells, 2 * num_cells + i + 1)
@@ -120,8 +153,8 @@ class CellRecognizer:
             # Здесь можно добавить реальные вероятности всех классов
             plt.bar(classes, [0.1] * 12)  # Заглушка
             plt.title(f"Probabilities {self.tasks[i]}")
-            plt.xlabel('Digit')
-            plt.ylabel('Probability')
+            plt.xlabel("Digit")
+            plt.ylabel("Probability")
             plt.xticks(classes)
 
         plt.tight_layout()

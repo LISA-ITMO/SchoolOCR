@@ -8,7 +8,7 @@ def extract_table_rows(
     conf_threshold: float = 0.5,
     min_y: int = 1500,
     row_threshold: int = 20,
-    debug: bool = False
+    debug: bool = False,
 ) -> list[list[list[int]]]:
     results = model(image)
 
@@ -34,7 +34,6 @@ def extract_table_rows(
         y_centers = (xyxy[:, 1] + xyxy[:, 3]) / 2
         sorted_indices = np.argsort(y_centers)
         sorted_boxes = xyxy[sorted_indices]
-        print(sorted_boxes)
 
         # Группировка в строки по Y
         row_groups = []

@@ -50,5 +50,9 @@ class MinioClient:
             content_type=content_type,
         )
 
+    def get_public_url(self, filename):
+        # todo прокидывать basePath через переменную окружения?
+        return f"http://localhost:9000/vpr-logs/{filename}"
+
     def init(self):
         self.init_bucket()

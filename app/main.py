@@ -7,7 +7,7 @@ from pdf2image import convert_from_bytes
 from PIL import Image
 from app.services.recognizer import DocumentRecognizer
 from app.config import app_version
-
+import traceback
 import io
 import json
 import base64
@@ -104,8 +104,9 @@ async def recognize(file: UploadFile = File(...)):
         try:
             recognized_document = document_recognizer.recognize(image)
             recognized.append(recognized_document)
-        except Exception:
-            print("incorrect image")
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
 
     return JSONResponse(content=recognized)
 

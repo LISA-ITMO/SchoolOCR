@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 FROM python:3.11.7-slim-bookworm
 
 ARG BUILD_VERSION=unknown
@@ -18,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsm6 \
     libxrender1 \
     libxext6 \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
@@ -34,13 +34,10 @@ WORKDIR /app
 COPY requirements-base.txt .
 COPY requirements-ml.txt .
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip install -r requirements-base.txt
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements-ml.txt
-
+RUN pip install -r requirements-ml.txt
 
 COPY app/ ./app
 
