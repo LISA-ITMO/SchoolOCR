@@ -22,7 +22,12 @@
   "default": {
     "score_range": [
       0,
-      5
-    ]
+      9
+    ],
+    "recognition": {
+      "use_llm": false,
+      "confidence_threshold": 0.6,
+      "llm_trigger_threshold": 0.6
+    }
   }
 }

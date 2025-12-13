@@ -51,7 +51,12 @@ class ConfigManager:
                 }
             },
             "default": {
-                "score_range": [0, 9]
+                "score_range": [0, 9],
+                "recognition": {
+                    "use_llm": False,
+                    "confidence_threshold": 0.6,
+                    "llm_trigger_threshold": 0.6
+                }
             }
         }
 
@@ -181,5 +186,17 @@ class ConfigManager:
             return list(self._config[subject].keys())
         return []
 
+    def get_recognition_config(self) -> Dict[str, Any]:
+        """
+        Настройки распознавания из default.recognition (одинаковые для всех).
+        """
+        recog = (self._config.get("default", {}).get("recognition", {}) or {}).copy()
+
+        # safety defaults
+        recog.setdefault("use_llm", False)
+        recog.setdefault("confidence_threshold", 0.6)
+        recog.setdefault("llm_trigger_threshold", recog["confidence_threshold"])
+
+        return recog
 
 config_manager = ConfigManager()

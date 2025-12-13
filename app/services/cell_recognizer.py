@@ -22,10 +22,11 @@ class CellResult:
 
 
 class CellRecognizer:
-    def __init__(self, debug: bool = False, use_llm: bool = False):
+    def __init__(self, debug: bool = False, use_llm: bool = False, llm_trigger_threshold: float = 0.6):
         self.model = get_extended_model()
         self.debug = debug
         self.use_llm = use_llm
+        self.llm_trigger_threshold = llm_trigger_threshold
         self.cell_images = []
         self.processed_images = []
         self.digits = []
@@ -69,7 +70,7 @@ class CellRecognizer:
         result.prob = model_prob
         result.prob_all = prob_all
 
-        if self.use_llm and model_prob < 0.6:
+        if self.use_llm and model_prob < self.llm_trigger_threshold:
             try:
                 success, buffer = cv2.imencode(".png", cell_img)
                 if success:

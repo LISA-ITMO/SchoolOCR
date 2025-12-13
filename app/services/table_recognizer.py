@@ -6,10 +6,22 @@ from app.ml.loader import get_yolo_model, get_yolo_model_extra
 
 
 class TableRecognizer:
-    def __init__(self, debug: bool = False, use_llm: bool = False):
+    def __init__(
+        self,
+        debug: bool = False,
+        use_llm: bool = False,
+        confidence_threshold: float = 0.6,
+        llm_trigger_threshold: float = 0.6,
+    ):
         self.yolo = get_yolo_model()
         self.yolo_extra = get_yolo_model_extra()
-        self.cell_recognizer = CellRecognizer(debug, use_llm)
+        self.confidence_threshold = confidence_threshold
+        self.cell_recognizer = CellRecognizer(
+            debug=debug,
+            use_llm=use_llm,
+            llm_trigger_threshold=llm_trigger_threshold,
+        )
+
 
     def _get_cell_width(self, cell: List[int]) -> int:
         return cell[2] - cell[0]
@@ -105,7 +117,7 @@ class TableRecognizer:
             task_dict[task_name] = (display_digit, prob)
             task_dict_prob_details[task_name] = result.prob_all if result.prob_all else {}
 
-            if prob < 0.6:
+            if prob < self.confidence_threshold:
                 low_confidence.append(task_name)
 
             if digit not in [10, 11] and digit is not None:
