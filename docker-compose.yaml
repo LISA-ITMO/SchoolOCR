@@ -87,3 +87,20 @@ services:
       mc anonymous set download s3/vpr-logs &&
       tail -f /dev/null
       "
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: DockerfileProd
+    ports:
+      - "80:8085"
+    profiles: ["prod"]
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: DockerfileDev
+    ports:
+      - "5173:5173"
+    profiles: ["dev"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules

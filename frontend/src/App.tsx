@@ -1,7 +1,5 @@
 import "./App.css";
 
-function App() {
+export const App = () => {
 	return <>ocr frontend</>;
-}
-
-export default App;
+};
