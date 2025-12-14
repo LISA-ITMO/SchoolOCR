@@ -23,6 +23,7 @@ services:
     depends_on:
       - db
       - minio
+
   ollama:
     image: ollama/ollama
     runtime: nvidia
@@ -72,16 +73,17 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+
   minio-mc:
-    image: minio/mc
+    image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      mc alias set local http://minio:9000 minioadmin minioadmin &&
-      mc mb -p local/vpr-logs || true &&
-      mc anonymous set download local/vpr-logs &&
+      rm -rf /root/.mc &&
+      mc alias set s3 http://minio:9000 minioadmin minioadmin &&
+      mc mb -p s3/vpr-logs || true &&
+      mc anonymous set download s3/vpr-logs &&
       tail -f /dev/null
       "
-volumes:
-  minio_data:
