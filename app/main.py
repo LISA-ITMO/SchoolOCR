@@ -2,7 +2,7 @@ from app.db.Db import Db
 from app.db.MinioClient import MinioClient
 from fastapi import FastAPI, File, UploadFile, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from pdf2image import convert_from_bytes
 from PIL import Image
 from app.services.recognizer import DocumentRecognizer
@@ -10,8 +10,7 @@ from app.config import app_version
 import traceback
 import io
 import json
-import base64
-import asyncio
+import uuid
 
 app = FastAPI(title="VPR Recognition API", version=app_version)
 
@@ -54,6 +53,16 @@ def version():
 
 @app.post("/recognize")
 async def recognize(file: UploadFile = File(...)):
+    recognize_id = str(uuid.uuid1())
+
+    db_instance.query(
+        """
+        INSERT INTO recognize_results (id, completion_percent)
+        values (%s, %s)
+        """,
+        (recognize_id, 0),
+    )
+
     allowed_pdf_types = {
         "application/pdf",
         "application/x-pdf",
@@ -100,87 +109,75 @@ async def recognize(file: UploadFile = File(...)):
             detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён.",
         )
 
-    for image in images:
+    for idx, image in enumerate(images):
         try:
             recognized_document = document_recognizer.recognize(image)
+
+            try:
+                object_name = f"{recognize_id}_{idx}.jpg"
+                bytes_image = io.BytesIO()
+                image.save(bytes_image, format="JPEG")
+                bytes_image = bytes_image.getvalue()
+                minio_client.upload_bytes(
+                    data=bytes_image, object_name=object_name, content_type="image/jpeg"
+                )
+                recognized_document["image_url"] = minio_client.get_public_url(
+                    object_name
+                )
+            except Exception as e:
+                print(f"Ошибка при формировании ссылки на скрин бланка")
+
             recognized.append(recognized_document)
         except Exception as e:
             print(e)
             traceback.print_exc()
+        actual_percent = round(100 * (idx + 1) / len(images))
+        db_payload = (
+            actual_percent,
+            json.dumps({"items": [recognized]}),
+            recognize_id,
+        )
+
+        db_instance.query(
+            """
+            UPDATE recognize_results SET
+            completion_percent=%s,
+            results=%s
+            WHERE id=%s
+            """,
+            db_payload,
+        )
 
     return JSONResponse(content=recognized)
 
 
-@app.post("/recognize/stream")
-async def recognize_stream(file: UploadFile = File(...)):
-    allowed_pdf_types = {
-        "application/pdf",
-        "application/x-pdf",
-        "application/octet-stream",
-    }
-    allowed_image_types = {
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/bmp",
-        "image/tiff",
-    }
+@app.get("/recognize/{id}/get_is_ready")
+def get_is_ready(id: str):
+    # todo вынести запросы в репозитории, добавить валидации
+    percent = db_instance.query_get(
+        """
+        SELECT completion_percent from recognize_results
+        WHERE id=%s;
+        """,
+        (id,),
+    )[0][0]
+    is_ready = percent == 100
 
-    content_type_ok = (
-        file.content_type in allowed_pdf_types
-        or file.content_type in allowed_image_types
-    )
+    return JSONResponse(content={"is_ready": is_ready})
 
-    header = await file.read(12)
-    await file.seek(0)
-    magic_ok = is_pdf(header) or is_image(header)
 
-    if not (content_type_ok or magic_ok):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ожидается PDF-файл или изображение (JPEG, PNG, GIF, BMP, TIFF). Проверьте формат и попробуйте снова.",
-        )
+@app.get("/recognize/{id}")
+def get_recognize_result(id: str):
+    result = db_instance.query_get(
+        """
+        SELECT results from recognize_results
+        WHERE id=%s;
+        """,
+        (id,),
+    )[0]
 
-    data = await file.read()
-
-    try:
-        if is_pdf(header):
-            images = convert_from_bytes(data)
-        else:
-            image = Image.open(io.BytesIO(data))
-            if image.mode != "RGB":
-                image = image.convert("RGB")
-            images = [image]
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не удалось прочитать файл. Убедитесь, что файл не повреждён.",
-        )
-
-    async def gen():
-        for idx, pil_image in enumerate(images):
-            payload = {"page_index": idx, "image": None, "result": None}
-            try:
-                buf = io.BytesIO()
-                pil_image.save(buf, format="PNG")
-                b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-                payload["image"] = f"data:image/png;base64,{b64}"
-
-                try:
-                    result = document_recognizer.recognize(pil_image)
-                    payload["result"] = result
-                except Exception as e:
-                    payload["result"] = None
-                    payload["error"] = f"Ошибка распознавания: {e}"
-            except Exception as e:
-                payload["error"] = f"Ошибка подготовки страницы: {e}"
-
-            line = json.dumps(payload, ensure_ascii=False) + "\n"
-            yield line.encode("utf-8")
-
-            await asyncio.sleep(0)
-
-    return StreamingResponse(gen(), media_type="application/x-ndjson")
+    payload = {"items": result[0]["items"]}
+    return JSONResponse(content=payload)
 
 
 if __name__ == "__main__":

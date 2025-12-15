@@ -23,27 +23,47 @@ class Db:
 
     def init_recognize_logs_table(self):
         try:
-            connection = self.get_connection()
-            cursor = connection.cursor()
-            cursor.execute(
-                """CREATE TABLE IF NOT EXISTS recognize_logs 
+            self.query(
+                """
+                CREATE TABLE IF NOT EXISTS recognize_logs 
                 (id serial PRIMARY KEY, cell_img text, cell_img_after_preprocessing text, 
-                recognize_result text, recognation_accuracy text, recognation_detail jsonb);"""
+                recognize_result text, recognation_accuracy text, recognation_detail jsonb);
+                """
             )
-            connection.commit()
-            cursor.close()
         except Exception as e:
             print(f"Ошибка при инициализации таблицы recognize_logs: {e}")
 
-    def query(self, queryString, params):
+    def init_recognize_results_table(self):
+        try:
+            self.query(
+                """
+                CREATE TABLE IF NOT EXISTS recognize_results
+                (id text, results jsonb, completion_percent int);
+                """
+            )
+        except Exception as e:
+            print(f"Ошибка при инициализации таблицы recognize_results: {e}")
+
+    def query(self, queryString, params=None):
         try:
             connection = self.get_connection()
             cursor = connection.cursor()
             cursor.execute(queryString, params)
             connection.commit()
             cursor.close()
-        except Exception:
-            print("Ошибка при исполнении запроса в БД")
+        except Exception as e:
+            print(f"Ошибка при исполнении запроса в БД: {e}")
+
+    def query_get(self, queryString, params=None):
+        try:
+            connection = self.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(queryString, params)
+            results = cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"Ошибка при исполнении запроса в БД: {e}")
 
     def init(self):
         self.init_recognize_logs_table()
+        self.init_recognize_results_table()
