@@ -163,7 +163,7 @@ def get_is_ready(id: str):
     )[0][0]
     is_ready = percent == 100
 
-    return JSONResponse(content={"is_ready": is_ready})
+    return JSONResponse(content={"is_ready": is_ready, "completion_percent": percent})
 
 
 @app.get("/recognize/{id}")
@@ -176,7 +176,7 @@ def get_recognize_result(id: str):
         (id,),
     )[0]
 
-    payload = {"items": result[0]["items"]}
+    payload = {"items": result[0]["items"][0]}
     return JSONResponse(content=payload)
 
 
