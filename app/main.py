@@ -154,6 +154,7 @@ def recognize_job(recognize_id: str, data: bytes, header: bytes):
                     content_type="image/jpeg",
                 )
                 recognized_document["image_url"] = minio.get_public_url(object_name)
+                recognized_document["id"] = str(uuid.uuid1())
             except Exception:
                 print("Ошибка при формировании ссылки на скрин бланка")
 

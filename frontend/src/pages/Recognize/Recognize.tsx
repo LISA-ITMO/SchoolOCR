@@ -15,6 +15,7 @@ export const Recognize = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 
+	const [deletedIds, setDeletedIds] = useState<string[]>([]);
 	const [opened, { open, close }] = useDisclosure(false);
 	const [selectedImgUrl, setSelectedImageUrl] = useState("");
 
@@ -23,6 +24,14 @@ export const Recognize = () => {
 	const [isInitialLoading, setIsInitialLoading] = useState(false);
 
 	const isReady = completionPercent === 100;
+
+	const addToDelete = useCallback(
+		(id: string) => {
+			const ids: string[] = [...deletedIds, id];
+			setDeletedIds(ids);
+		},
+		[deletedIds]
+	);
 
 	const rowsData = useMemo(
 		() => (result || []).map((item) => prepareToRow(item.scores)),
@@ -87,9 +96,13 @@ export const Recognize = () => {
 				id={id}
 				isReady={isReady}
 				completionPercent={completionPercent}
+				items={result || []}
+				deletedIds={deletedIds}
 			/>
 
 			<div className={styles.cards}>
+				{!result?.length && <Loader />}
+
 				{result?.map((item, idx) => (
 					<ParticipantCard
 						key={`${item.participant_code}-${idx}`}
@@ -97,6 +110,8 @@ export const Recognize = () => {
 						row={rowsData[idx]}
 						total={sumScores(item.scores)}
 						onPreviewClick={openPreviewModal}
+						deleteCard={addToDelete}
+						isDeleted={deletedIds.includes(item.id)}
 					/>
 				))}
 			</div>

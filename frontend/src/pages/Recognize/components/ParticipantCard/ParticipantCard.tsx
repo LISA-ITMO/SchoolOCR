@@ -1,4 +1,4 @@
-import { Card, Group, Stack, Text } from "@mantine/core";
+import { Button, Card, Group, Stack, Text } from "@mantine/core";
 import type { IRecognizeItem } from "@typings/recognize";
 import styles from "./ParticipantCard.module.css";
 import { ScoresTable } from "../ScoresTable/ScoresTable";
@@ -15,6 +15,8 @@ interface IProps {
 	row: RowData;
 	total: number;
 	onPreviewClick: (url: string) => void;
+	deleteCard: (id: string) => void;
+	isDeleted: boolean;
 }
 
 export const ParticipantCard: React.FC<IProps> = ({
@@ -22,7 +24,11 @@ export const ParticipantCard: React.FC<IProps> = ({
 	row,
 	total,
 	onPreviewClick,
+	deleteCard,
+	isDeleted,
 }) => {
+	if (isDeleted) return null;
+
 	return (
 		<Card radius="lg" withBorder className={styles.card}>
 			<Card.Section className={styles.cardHeader}>
@@ -30,6 +36,9 @@ export const ParticipantCard: React.FC<IProps> = ({
 					<Text fw={800} size="xl">
 						Сумма баллов: {total}
 					</Text>
+					<Button color="red" onClick={() => deleteCard(item.id)}>
+						Удалить из выгрузки
+					</Button>
 				</Group>
 			</Card.Section>
 

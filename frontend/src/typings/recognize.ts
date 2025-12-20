@@ -7,6 +7,7 @@ export type ScoreDetails = Record<string, number>;
 export type ScoresDetailsMap = Record<string, ScoreDetails>;
 
 export interface IRecognizeItem {
+	id: string;
 	grade: number | null;
 	errors: string[] | null;
 	warnings: string[] | null;
