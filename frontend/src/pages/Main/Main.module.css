@@ -8,3 +8,13 @@
     max-width: 1200px;
     width: 100%;
 }
+
+.mainText {
+    display: block;
+    text-align: center;
+    margin-bottom: 25px !important;
+}
+
+.btn {
+    margin-top: 25px;
+}

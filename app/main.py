@@ -353,7 +353,7 @@ def get_is_ready(id: UUID):
 
 
 @app.get("/recognize/{id}")
-def get_recognize_result(id: UUID):
+def get_recognize_result(id: str):
     id_str = str(id)
     rows = db_instance.query_get(
         """

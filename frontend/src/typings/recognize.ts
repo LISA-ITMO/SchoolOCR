@@ -23,8 +23,10 @@ export interface IRecognizeItem {
 	scores_details: ScoresDetailsMap;
 }
 
-export interface IRecognizeItems {
+export interface IRecognizeResponse {
 	items: IRecognizeItem[];
+	is_ready: boolean;
+	completion_percent: number;
 }
 
 export interface IRecognizeGetIsReady {
@@ -34,4 +36,8 @@ export interface IRecognizeGetIsReady {
 
 export interface IUploadRecognize {
 	file: FormData;
+}
+
+export interface ICreateRecognize {
+	task_id: string;
 }

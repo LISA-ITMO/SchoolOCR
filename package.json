@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@mantine/notifications": "^8.3.10"
+  }
+}

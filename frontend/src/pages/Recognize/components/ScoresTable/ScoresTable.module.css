@@ -1,0 +1,26 @@
+.tableWrap {
+  padding: 14px 14px 10px;
+  border: 1px solid var(--mantine-color-gray-2);
+  border-radius: 14px;
+  background: var(--mantine-color-white);
+}
+
+.table {
+  min-width: 720px;
+}
+
+.firstCol {
+  width: 140px;
+  white-space: nowrap;
+}
+
+.cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.warnIcon {
+  display: inline-flex;
+  line-height: 0;
+}

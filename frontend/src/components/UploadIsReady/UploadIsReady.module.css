@@ -1,0 +1,23 @@
+.wrapper {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 16px
+}
+
+.fileInformation {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.text {
+    color: rgba(128, 128, 128, 0.672) !important;
+}
