@@ -37,7 +37,7 @@ COPY requirements-ml.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements-base.txt
 
-RUN pip install -r requirements-ml.txt
+RUN pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements-ml.txt
 
 COPY app/ ./app
 
