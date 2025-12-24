@@ -6,17 +6,24 @@ from app.services.image_utils import extract_region
 from app.preprocessing.general import preprocess_general
 from app.preprocessing.code_digit import preprocess_code_image
 from wired_table_rec.utils import ImageOrientationCorrector
+from app.services.config_manager import ConfigManager
 
 
 class CodeRecognizer:
-    def __init__(self, model, config: dict):
+    def __init__(self, model, config_manager: ConfigManager):
         self.model = model
-        self.config = config
+        self.config_manager = config_manager
         self.orientation_corrector = ImageOrientationCorrector()
 
     def recognize(self, image: np.ndarray) -> Optional[str]:
         try:
-            code_region = extract_region(image, self.config["regions"]["code"])
+            code_coords = self.config_manager.get_region_coordinates("code")
+            if not code_coords:
+                return None
+            code_region = extract_region(
+                image,
+                {"x1": code_coords[0], "y1": code_coords[1], "x2": code_coords[2], "y2": code_coords[3]},
+            )
 
             code_region = self.orientation_corrector(code_region)
             preprocessed = preprocess_general(code_region)
@@ -73,6 +80,6 @@ class CodeRecognizer:
             return None
 
 
-def recognize_code_from_image(image: np.ndarray, config: dict, model) -> Optional[str]:
-    recognizer = CodeRecognizer(model, config)
+def recognize_code_from_image(image: np.ndarray, config_manager: ConfigManager, model) -> Optional[str]:
+    recognizer = CodeRecognizer(model, config_manager)
     return recognizer.recognize(image)

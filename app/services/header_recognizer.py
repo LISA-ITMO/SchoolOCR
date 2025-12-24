@@ -4,11 +4,12 @@ from typing import Optional, Tuple
 from app.services.image_utils import extract_region
 from app.preprocessing.general import preprocess_general
 from app.constants import replacements, WHITELIST
+from app.services.config_manager import ConfigManager
 
 
 class HeaderRecognizer:
-    def __init__(self, config: dict):
-        self.config = config
+    def __init__(self, config_manager: ConfigManager):
+        self.config_manager = config_manager
         self._compile_patterns()
 
     def _compile_patterns(self):
@@ -37,12 +38,29 @@ class HeaderRecognizer:
         return None, None, None
 
     def extract_subject_grade_variant(self, image) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-        hat_region = extract_region(image, self.config["regions"]["hat"])
+        hat_coords = self.config_manager.get_region_coordinates("hat")
+        if not hat_coords:
+            return None, None, None
+        hat_region = extract_region(
+            image,
+            {"x1": hat_coords[0], "y1": hat_coords[1], "x2": hat_coords[2], "y2": hat_coords[3]},
+        )
         text = self.recognize_hat_text(hat_region)
         subject, grade, variant = self.parse_hat_text(text)
 
         if not subject or not grade:
-            hat_region = extract_region(image, self.config["regions"]["hat_reserve"])
+            hat_reserve_coords = self.config_manager.get_region_coordinates("hat_reserve")
+            if not hat_reserve_coords:
+                return subject, grade, variant
+            hat_region = extract_region(
+                image,
+                {
+                    "x1": hat_reserve_coords[0],
+                    "y1": hat_reserve_coords[1],
+                    "x2": hat_reserve_coords[2],
+                    "y2": hat_reserve_coords[3],
+                },
+            )
             text = self.recognize_hat_text(hat_region)
             subject, grade, variant = self.parse_hat_text(text)
 

@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from io import BytesIO
 
-from app.config import config
 from app.ml.loader import get_extended_model
 from app.services.image_utils import decode_image
 from app.services.header_recognizer import HeaderRecognizer
@@ -12,10 +11,11 @@ from app.services.config_manager import config_manager
 
 class DocumentRecognizer:
     def __init__(self):
-        self.config = config
+        self.config_manager = config_manager
         self.model = get_extended_model()
-        self.header_recognizer = HeaderRecognizer(self.config)
-        self.code_recognizer = CodeRecognizer(self.model, self.config)
+        self.header_recognizer = HeaderRecognizer(self.config_manager)
+        self.code_recognizer = CodeRecognizer(self.model, self.config_manager)
+        self.table_recognizer = TableRecognizer(config_manager_instance=self.config_manager)
 
     def _convert_to_jpeg(self, im):
         with BytesIO() as f:
@@ -38,14 +38,9 @@ class DocumentRecognizer:
             if not code:
                 errors.append("Не удалось распознать код участника")
 
-            recog_cfg = config_manager.get_recognition_config()
-            table_recognizer = TableRecognizer(
-                use_llm=bool(recog_cfg["use_llm"]),
-                confidence_threshold=float(recog_cfg["confidence_threshold"]),
-                llm_trigger_threshold=float(recog_cfg["llm_trigger_threshold"]),
+            task_dict, task_dict_prob_details, total_score, low_confidence = (
+                self.table_recognizer.recognize_scores_table(image)
             )
-
-            task_dict, task_dict_prob_details, total_score, low_confidence = table_recognizer.recognize_scores_table(image)
 
             if task_dict is None:
                 errors.append("Не удалось распознать таблицу")

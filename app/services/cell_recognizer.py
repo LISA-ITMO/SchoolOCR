@@ -7,6 +7,7 @@ from app.preprocessing.cell_digit import preprocess_cell_image
 from app.ml.loader import get_extended_model
 from app.ollama_interaction.recognize_digit import classify_image_api
 from app.services.recognize_logger import RecognizeLogger
+from app.services.config_manager import ConfigManager, config_manager
 
 
 @dataclass
@@ -22,11 +23,17 @@ class CellResult:
 
 
 class CellRecognizer:
-    def __init__(self, debug: bool = False, use_llm: bool = False, llm_trigger_threshold: float = 0.6):
+    def __init__(
+        self,
+        debug: bool = False,
+        config_manager_instance: Optional[ConfigManager] = None,
+    ):
         self.model = get_extended_model()
         self.debug = debug
-        self.use_llm = use_llm
-        self.llm_trigger_threshold = llm_trigger_threshold
+        self.config_manager = config_manager_instance or config_manager
+        recog_cfg = self.config_manager.get_recognition_config()
+        self.use_llm = bool(recog_cfg["use_llm"])
+        self.llm_trigger_threshold = float(recog_cfg["llm_trigger_threshold"])
         self.cell_images = []
         self.processed_images = []
         self.digits = []

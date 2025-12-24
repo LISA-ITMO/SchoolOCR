@@ -3,23 +3,25 @@ from typing import List, Tuple, Optional, Any, Dict
 from app.detection.yolo_cells import extract_table_rows
 from app.services.cell_recognizer import CellRecognizer, CellResult
 from app.ml.loader import get_yolo_model, get_yolo_model_extra
+from app.services.config_manager import ConfigManager, config_manager
 
 
 class TableRecognizer:
     def __init__(
         self,
         debug: bool = False,
-        use_llm: bool = False,
-        confidence_threshold: float = 0.6,
-        llm_trigger_threshold: float = 0.6,
+        config_manager_instance: Optional[ConfigManager] = None,
     ):
+        self.config_manager = config_manager_instance or config_manager
+        recog_cfg = self.config_manager.get_recognition_config()
+        confidence_threshold = float(recog_cfg["confidence_threshold"])
+
         self.yolo = get_yolo_model()
         self.yolo_extra = get_yolo_model_extra()
         self.confidence_threshold = confidence_threshold
         self.cell_recognizer = CellRecognizer(
             debug=debug,
-            use_llm=use_llm,
-            llm_trigger_threshold=llm_trigger_threshold,
+            config_manager_instance=self.config_manager,
         )
 
 
