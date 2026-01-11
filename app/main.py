@@ -119,7 +119,7 @@ async def wait_until_done(recognize_id: str, timeout_s: int = 600, poll_s: float
 def recognize_job(recognize_id: str, data: bytes, header: bytes):
     db = Db()
     minio = MinioClient()
-    recognizer = DocumentRecognizer()
+    recognizer = DocumentRecognizer(enable_logging=True)
 
     db.query(
         """

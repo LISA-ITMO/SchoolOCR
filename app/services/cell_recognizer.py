@@ -26,14 +26,22 @@ class CellRecognizer:
     def __init__(
         self,
         debug: bool = False,
+        enable_logging: bool = False,
         config_manager_instance: Optional[ConfigManager] = None,
     ):
         self.model = get_extended_model()
         self.debug = debug
+        self.enable_logging = enable_logging
+
         self.config_manager = config_manager_instance or config_manager
         recog_cfg = self.config_manager.get_recognition_config()
         self.use_llm = bool(recog_cfg["use_llm"])
         self.llm_trigger_threshold = float(recog_cfg["llm_trigger_threshold"])
+
+        self._recognize_logger: Optional[RecognizeLogger] = (
+            RecognizeLogger() if self.enable_logging else None
+        )
+
         self.cell_images = []
         self.processed_images = []
         self.digits = []
@@ -61,17 +69,18 @@ class CellRecognizer:
             str(i): round(float(p), 100) for i, p in enumerate(pred.reshape(-1))
         }
 
-        try:
-            recognize_logger = RecognizeLogger()
-            recognize_logger.log(
-                initial_image=cell_img,
-                preprocessed_image=processed_img,
-                recognation_result=model_digit,
-                recognation_accuracy=model_prob * 100,
-                recognation_detail=full_detail,
-            )
-        except Exception as e:
-            print("Ошибка логирования:", e)
+        if self.enable_logging and self._recognize_logger is not None:
+            try:
+                self._recognize_logger.log(
+                    initial_image=cell_img,
+                    preprocessed_image=processed_img,
+                    recognation_result=model_digit,
+                    recognation_accuracy=model_prob * 100,
+                    recognation_detail=full_detail,
+                )
+            except Exception as e:
+                print("Ошибка логирования:", e)
+        # --- конец блока ---
 
         result.digit = model_digit
         result.prob = model_prob
@@ -158,7 +167,6 @@ class CellRecognizer:
             # Вероятности всех классов
             plt.subplot(3, num_cells, 2 * num_cells + i + 1)
             classes = list(range(12))
-            # Здесь можно добавить реальные вероятности всех классов
             plt.bar(classes, [0.1] * 12)  # Заглушка
             plt.title(f"Probabilities {self.tasks[i]}")
             plt.xlabel("Digit")

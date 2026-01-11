@@ -197,3 +197,4 @@ api_keys.json
 /ollama/
 
 .DS_Store
+/scripts/app_interaction/organized_cells_new/

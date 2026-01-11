@@ -10,6 +10,7 @@ class TableRecognizer:
     def __init__(
         self,
         debug: bool = False,
+        enable_logging: bool = False,
         config_manager_instance: Optional[ConfigManager] = None,
     ):
         self.config_manager = config_manager_instance or config_manager
@@ -21,15 +22,16 @@ class TableRecognizer:
         self.confidence_threshold = confidence_threshold
         self.cell_recognizer = CellRecognizer(
             debug=debug,
+            enable_logging=enable_logging,
             config_manager_instance=self.config_manager,
         )
-
 
     def _get_cell_width(self, cell: List[int]) -> int:
         return cell[2] - cell[0]
 
     def _filter_cells(self, table_rows: List[List[List[int]]]) -> Tuple[
-        Optional[List[List[int]]], Optional[List[List[int]]]]:
+        Optional[List[List[int]]], Optional[List[List[int]]]
+    ]:
         if len(table_rows) % 2 != 0:
             table_rows = [row for row in table_rows if len(row) > 3]
             if len(table_rows) % 2 != 0:
@@ -43,12 +45,21 @@ class TableRecognizer:
             second_cell_width = self._get_cell_width(table_rows[2][1])
 
             if first_cell_width - second_cell_width > 30:
-                return table_rows[0][1:] + table_rows[2][1:-2], table_rows[1][1:] + table_rows[3][1:-2]
+                return (
+                    table_rows[0][1:] + table_rows[2][1:-2],
+                    table_rows[1][1:] + table_rows[3][1:-2],
+                )
             else:
-                return table_rows[0][1:] + table_rows[2][:-2], table_rows[1][1:] + table_rows[3][:-2]
+                return (
+                    table_rows[0][1:] + table_rows[2][:-2],
+                    table_rows[1][1:] + table_rows[3][:-2],
+                )
 
         elif len(table_rows) == 6:
-            return table_rows[1][1:] + table_rows[4][1:-2], table_rows[2][1:] + table_rows[5][1:-2]
+            return (
+                table_rows[1][1:] + table_rows[4][1:-2],
+                table_rows[2][1:] + table_rows[5][1:-2],
+            )
 
         return None, None
 
@@ -61,7 +72,8 @@ class TableRecognizer:
         return cell_images
 
     def _recognize_table_all(self, image: np.ndarray, model_yolo: Any) -> Tuple[
-        Optional[List[str]], Optional[List[CellResult]]]:
+        Optional[List[str]], Optional[List[CellResult]]
+    ]:
         table_rows = extract_table_rows(image, model_yolo)
         filtered_cells_tasks, filtered_cells_mnist = self._filter_cells(table_rows)
 
@@ -83,14 +95,13 @@ class TableRecognizer:
 
         tasks = [str(i + 1) for i in range(len(filtered_cells_tasks))]
         cell_images = self._extract_cell_images(image, filtered_cells_mnist)
-
-        # Теперь возвращаем список CellResult
         recognition_results = self.cell_recognizer.recognize_multiple_cells(cell_images, tasks)
 
         return tasks, recognition_results
 
     def recognize_scores_table(self, image: np.ndarray) -> Tuple[
-        Optional[dict], Optional[dict], int, Optional[List[str]]]:
+        Optional[dict], Optional[dict], int, Optional[List[str]]
+    ]:
         if self.cell_recognizer.debug:
             self.cell_recognizer.reset_debug_data()
 
@@ -114,7 +125,7 @@ class TableRecognizer:
             prob = round(float(result.prob), 2) if result.prob else 0.0
 
             task_name = task_numbers[i] if i < len(task_numbers) else str(i + 1)
-            display_digit = '-' if digit == 10 else ('x' if digit == 11 else digit)
+            display_digit = "-" if digit == 10 else ("x" if digit == 11 else digit)
 
             task_dict[task_name] = (display_digit, prob)
             task_dict_prob_details[task_name] = result.prob_all if result.prob_all else {}
