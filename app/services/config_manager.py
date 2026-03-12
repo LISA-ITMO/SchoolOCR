@@ -2,12 +2,13 @@ import json
 import os
 from typing import Dict, Tuple, Optional, Any, List
 
+CONFIG_PATH = "config_new.json"
 
 class ConfigManager:
     def __init__(self, config_path: str = None):
         if config_path is None:
             current_dir = os.path.dirname(__file__)
-            self.config_path = os.path.join(current_dir, "config_new.json")
+            self.config_path = os.path.join(current_dir, CONFIG_PATH)
         else:
             self.config_path = config_path
 
@@ -57,6 +58,55 @@ class ConfigManager:
                     "confidence_threshold": 0.6,
                     "llm_trigger_threshold": 0.6
                 }
+            },
+            "llm": {
+                "api_url": "http://localhost:11434/api/chat",
+                "model": "qwen2.5vl:7b",
+                "prompt": (
+                    "Ты система извлечения данных из экзаменационного бланка.\n\n"
+                    "Нужно полностью распознать документ и вернуть СТРОГО JSON.\n\n"
+                    "Запрещено:\n"
+                    "- писать пояснения\n"
+                    "- писать текст до или после JSON\n"
+                    "- использовать markdown\n"
+                    "- добавлять ```json```\n\n"
+                    "Если значение невозможно прочитать — null.\n"
+                    "Не выдумывай данные.\n\n"
+                    "Формат ответа:\n\n"
+                    "{\n"
+                    '  "subject": string|null,\n'
+                    '  "grade": string|null,\n'
+                    '  "variant": string|null,\n'
+                    '  "participant_code": string|null,\n'
+                    '  "total_score": integer|null,\n'
+                    '  "scores": {\n'
+                    '    "<номер задания>": integer|string|null\n'
+                    "  },\n"
+                    '  "errors": null,\n'
+                    '  "warnings": null\n'
+                    "}\n\n"
+                    "ПРАВИЛА ДЛЯ scores:\n"
+                    "- это словарь (НЕ массив)\n"
+                    '- ключи — строки: "1", "2", "3", ...\n'
+                    "- количество заданий НЕ фиксировано\n"
+                    "- добавь ВСЕ строки таблицы, которые видишь\n"
+                    "- если номера заданий напечатаны — используй их\n"
+                    "- если номеров нет — нумеруй сверху вниз начиная с 1\n"
+                    "- не придумывай отсутствующие задания\n\n"
+                    "Допустимые значения в таблице:\n"
+                    "- целое число\n"
+                    '- "X"\n'
+                    '- "-"\n'
+                    "- null\n\n"
+                    "Правила распознавания:\n"
+                    "- код участника — РОВНО 5 цифр (ведущие нули сохраняй)\n"
+                    "- рукописные цифры переписывай буквально\n"
+                    "- символ X — латинская заглавная буква\n"
+                    '- X и "-" НЕ заменять на числа\n'
+                    "- если символ неразборчив — null\n"
+                    "- суммарный балл — это total_score, если его можно определить\n\n"
+                    "Ответ должен быть ТОЛЬКО JSON."
+                )
             }
         }
 
@@ -198,5 +248,14 @@ class ConfigManager:
         recog.setdefault("llm_trigger_threshold", recog["confidence_threshold"])
 
         return recog
+
+    def get_llm_config(self) -> Dict[str, Any]:
+        llm_cfg = (self._config.get("default", {}).get("llm", {}) or {}).copy()
+
+        llm_cfg.setdefault("api_url", "http://ollama:11434/api/chat")
+        llm_cfg.setdefault("model", "qwen2.5vl:7b")
+        llm_cfg.setdefault("prompt", "")
+
+        return llm_cfg
 
 config_manager = ConfigManager()

@@ -33,7 +33,7 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ./ollama_interaction:/root/.ollama_interaction
+      - ./ollama:/root/.ollama
       - ./ollama_entrypoint.sh:/root/ollama_entrypoint.sh
     entrypoint: /root/ollama_entrypoint.sh
     profiles: ["ollama"]

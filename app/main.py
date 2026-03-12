@@ -21,6 +21,9 @@ from app.db.Db import Db
 from app.db.MinioClient import MinioClient
 from app.services.recognizer import DocumentRecognizer
 from app.config import app_version
+from app.services.config_manager import config_manager
+from app.ollama_interaction.send_custom import send_image_to_llm
+from app.ollama_interaction.get_api_keys import get_llm_api_key
 
 
 mp.set_start_method("spawn", force=True)
@@ -394,6 +397,83 @@ def get_recognize_result(id: str):
             "items": items,
         }
     )
+
+@app.post("/llm/recognize")
+async def llm_recognize(
+    file: UploadFile = File(...),
+    prompt: str | None = Query(default=None),
+    api_url: str | None = Query(default=None),
+    model: str | None = Query(default=None),
+    api_key: str | None = Query(default=None),
+):
+
+    allowed_pdf_types = {
+        "application/pdf",
+        "application/x-pdf",
+        "application/octet-stream",
+    }
+
+    allowed_image_types = {
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/tiff",
+    }
+
+    content_type_ok = (
+        file.content_type in allowed_pdf_types
+        or file.content_type in allowed_image_types
+    )
+
+    header = await file.read(12)
+    await file.seek(0)
+
+    magic_ok = is_pdf(header) or is_image(header)
+
+    if not (content_type_ok or magic_ok):
+        raise HTTPException(
+            status_code=400,
+            detail="Ожидается PDF-файл или изображение",
+        )
+
+    data = await file.read()
+
+    llm_cfg = config_manager.get_llm_config()
+
+    prompt = prompt or llm_cfg["prompt"]
+    api_url = api_url or llm_cfg["api_url"]
+    model = "qwen3-vl:235b-cloud"
+
+    if not api_key:
+        api_key = get_llm_api_key()
+
+    # --- PDF → image ---
+    if is_pdf(header):
+        images = convert_from_bytes(data)
+        image = images[0]
+    else:
+        image = Image.open(io.BytesIO(data))
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
+    image_bytes = io.BytesIO()
+    image.save(image_bytes, format="JPEG")
+
+    try:
+
+        result = send_image_to_llm(
+            image_bytes=image_bytes.getvalue(),
+            prompt=prompt,
+            api_url=api_url,
+            model=model,
+            api_key=api_key
+        )
+
+        return JSONResponse(content=result)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
