@@ -402,11 +402,9 @@ def get_recognize_result(id: str):
 async def llm_recognize(
     file: UploadFile = File(...),
     prompt: str | None = Query(default=None),
-    api_url: str | None = Query(default=None),
     model: str | None = Query(default=None),
     api_key: str | None = Query(default=None),
 ):
-
     allowed_pdf_types = {
         "application/pdf",
         "application/x-pdf",
@@ -442,15 +440,23 @@ async def llm_recognize(
     llm_cfg = config_manager.get_llm_config()
 
     prompt = prompt or llm_cfg["prompt"]
-    api_url = api_url or llm_cfg["api_url"]
-    model = "qwen3-vl:235b-cloud"
+    model = model or "qwen3-vl:235b"
+    api_url = "https://ollama.com/api/chat"
 
     if not api_key:
         api_key = get_llm_api_key()
 
-    # --- PDF → image ---
+    if not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="Не передан API key для облачного LLM endpoint",
+        )
+
+    # PDF -> image
     if is_pdf(header):
         images = convert_from_bytes(data)
+        if not images:
+            raise HTTPException(status_code=400, detail="PDF не содержит страниц")
         image = images[0]
     else:
         image = Image.open(io.BytesIO(data))
@@ -458,19 +464,22 @@ async def llm_recognize(
             image = image.convert("RGB")
 
     image_bytes = io.BytesIO()
-    image.save(image_bytes, format="JPEG")
+    image.save(image_bytes, format="JPEG", quality=95)
 
     try:
-
         result = send_image_to_llm(
             image_bytes=image_bytes.getvalue(),
             prompt=prompt,
             api_url=api_url,
             model=model,
-            api_key=api_key
+            api_key=api_key,
         )
 
-        return JSONResponse(content=result)
+        try:
+            parsed = json.loads(result)
+            return JSONResponse(content=parsed)
+        except Exception:
+            return JSONResponse(content={"result": result})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
