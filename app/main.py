@@ -10,7 +10,7 @@ import multiprocessing as mp
 from uuid import UUID
 from concurrent.futures import ProcessPoolExecutor
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -401,9 +401,9 @@ def get_recognize_result(id: str):
 @app.post("/llm/recognize")
 async def llm_recognize(
     file: UploadFile = File(...),
-    prompt: str | None = Query(default=None),
-    model: str | None = Query(default=None),
-    api_key: str | None = Query(default=None),
+    prompt: str | None = Form(default=None),
+    model: str | None = Form(default=None),
+    api_key: str | None = Form(default=None),
 ):
     allowed_pdf_types = {
         "application/pdf",
@@ -449,10 +449,9 @@ async def llm_recognize(
     if not api_key:
         raise HTTPException(
             status_code=400,
-            detail="Не передан API key для облачного LLM endpoint",
+            detail="Не передан API key в теле запроса и не найден в конфигурации",
         )
 
-    # PDF -> image
     if is_pdf(header):
         images = convert_from_bytes(data)
         if not images:
