@@ -10,9 +10,10 @@ import multiprocessing as mp
 from uuid import UUID
 from concurrent.futures import ProcessPoolExecutor
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, status, Query, Form, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyHeader
 
 from pdf2image import convert_from_bytes
 from PIL import Image
@@ -28,6 +29,17 @@ from app.ollama_interaction.get_api_keys import get_llm_api_key
 
 mp.set_start_method("spawn", force=True)
 
+_api_keys_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
+with open(_api_keys_path) as _f:
+    _VALID_API_KEYS: set = set(json.load(_f)["keys"])
+
+_api_key_header = APIKeyHeader(name="X-API-Key")
+
+
+def verify_api_key(key: str = Security(_api_key_header)):
+    if key not in _VALID_API_KEYS:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,7 +52,7 @@ async def lifespan(app: FastAPI):
             ex.shutdown(wait=False, cancel_futures=True)
 
 
-app = FastAPI(title="VPR Recognition API", version=app_version, lifespan=lifespan)
+app = FastAPI(title="VPR Recognition API", version=app_version, lifespan=lifespan, dependencies=[Depends(verify_api_key)])
 
 db_instance = Db()
 minio_client = MinioClient()

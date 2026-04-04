@@ -125,53 +125,43 @@ python ./scripts/app_interaction/sender.py
 
 ## Авторизация API
 
-### Текущая реализация
+Все эндпоинты защищены API-ключом. Ключ передаётся в заголовке `X-API-Key`.
 
-Авторизация реализована в простейшем виде через статичные API-ключи в файле `api_keys.json`.
+При отсутствии или неверном ключе сервер возвращает `401 Unauthorized`.
 
-### Создание файла API-ключей
+### Управление ключами
 
-1. Создайте файл `api_keys.json` в корне проекта:
+Ключи хранятся в файле `app/api_keys.json`:
 
 ```json
 {
-	"keys": ["ваш_уникальный_ключ_1", "ваш_уникальный_ключ_2"]
+    "keys": ["ваш_уникальный_ключ_1", "ваш_уникальный_ключ_2"]
 }
 ```
 
-## Пример авторизованного запроса
+Файл читается при старте приложения. После изменения необходима перезагрузка сервиса.
+
+### Примеры запросов
+
+**curl:**
+
+```bash
+curl -X POST "http://localhost:8000/recognize" \
+  -H "X-API-Key: ваш_ключ" \
+  -F "file=@image.jpg"
+```
+
+**Python:**
 
 ```python
 import requests
-import base64
 
-# Кодируем изображение в base64
-with open("test_image.jpg", "rb") as image_file:
-    encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-
-# Формируем запрос
-url = "http://localhost:8000/recognize"
-headers = {
-    "Authorization": "42d354f4b6e38ff95553137e49f724c9bc429399"  # Ваш API-ключ
-}
-payload = {
-    "image_base64": encoded_image
-}
-
-# Отправляем запрос
 response = requests.post(
-    url,
-    headers=headers,
-    json=payload
+    "http://localhost:8000/recognize",
+    headers={"X-API-Key": "ваш_ключ"},
+    files={"file": open("image.jpg", "rb")},
 )
-
-# Обрабатываем ответ
-if response.status_code == 200:
-    print("Успешный ответ:")
-    print(response.json())
-else:
-    print(f"Ошибка {response.status_code}:")
-    print(response.text)
+print(response.json())
 ```
 
 ## Краткая документация
