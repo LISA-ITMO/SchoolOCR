@@ -2,11 +2,11 @@ from fastapi import HTTPException
 from io import BytesIO
 
 from app.ml.loader import get_extended_model
-from app.services.image_utils import decode_image
-from app.services.header_recognizer import HeaderRecognizer
-from app.services.code_recognizer import CodeRecognizer
-from app.services.table_recognizer import TableRecognizer
-from app.services.config_manager import config_manager
+from app.recognizers.image_utils import decode_image
+from app.recognizers.header_recognizer import HeaderRecognizer
+from app.recognizers.code_recognizer import CodeRecognizer
+from app.recognizers.table_recognizer import TableRecognizer
+from app.recognizers.config_manager import config_manager
 
 
 class DocumentRecognizer:

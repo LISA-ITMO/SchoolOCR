@@ -13,7 +13,7 @@ from PIL import Image
 
 from app.db.Db import Db
 from app.db.MinioClient import MinioClient
-from app.services.recognizer import DocumentRecognizer
+from app.recognizers.recognizer import DocumentRecognizer
 
 router = APIRouter(prefix="/recognize", tags=["recognize"])
 

@@ -5,7 +5,7 @@ import shutil
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.cell_recognizer import CellRecognizer
+from app.recognizers.cell_recognizer import CellRecognizer
 
 
 def organize_cells_by_digit(input_dir, output_dir):

@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from app.preprocessing.cell_digit import preprocess_cell_image
 from app.ml.loader import get_extended_model
 from app.ollama_interaction.recognize_digit import classify_image_api
-from app.services.recognize_logger import RecognizeLogger
-from app.services.config_manager import ConfigManager, config_manager
+from app.recognizers.recognize_logger import RecognizeLogger
+from app.recognizers.config_manager import ConfigManager, config_manager
 
 
 @dataclass

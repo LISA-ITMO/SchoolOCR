@@ -6,7 +6,7 @@ from PIL import Image
 # Добавляем путь для импортов
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from app.services.recognizer import DocumentRecognizer
+from app.recognizers.recognizer import DocumentRecognizer
 
 
 def main():

@@ -1,10 +1,10 @@
 import re
 import pytesseract
 from typing import Optional, Tuple
-from app.services.image_utils import extract_region
+from app.recognizers.image_utils import extract_region
 from app.preprocessing.general import preprocess_general
 from app.constants import replacements, WHITELIST
-from app.services.config_manager import ConfigManager
+from app.recognizers.config_manager import ConfigManager
 
 
 class HeaderRecognizer:

@@ -1,9 +1,9 @@
 import numpy as np
 from typing import List, Tuple, Optional, Any, Dict
 from app.detection.yolo_cells import extract_table_rows
-from app.services.cell_recognizer import CellRecognizer, CellResult
+from app.recognizers.cell_recognizer import CellRecognizer, CellResult
 from app.ml.loader import get_yolo_model, get_yolo_model_extra
-from app.services.config_manager import ConfigManager, config_manager
+from app.recognizers.config_manager import ConfigManager, config_manager
 
 
 class TableRecognizer:

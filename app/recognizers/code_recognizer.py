@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 from typing import Optional
 
-from app.services.image_utils import extract_region
+from app.recognizers.image_utils import extract_region
 from app.preprocessing.general import preprocess_general
 from app.preprocessing.code_digit import preprocess_code_image
 from wired_table_rec.utils import ImageOrientationCorrector
-from app.services.config_manager import ConfigManager
+from app.recognizers.config_manager import ConfigManager
 
 
 class CodeRecognizer:

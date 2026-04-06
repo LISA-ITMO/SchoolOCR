@@ -1,5 +1,5 @@
 import cv2
-from app.services.cell_recognizer import CellRecognizer
+from app.recognizers.cell_recognizer import CellRecognizer
 
 # --------- НАСТРОЙКА ----------
 IMAGE_PATH = "organized_cells/6/page_1_p1_cell_001_prob0.985.png"

@@ -6,7 +6,7 @@ import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.cell_recognizer import CellRecognizer
+from app.recognizers.cell_recognizer import CellRecognizer
 
 
 def evaluate_cell_recognition(data_dir, output_report_path=None):

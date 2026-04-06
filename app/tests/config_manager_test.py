@@ -3,7 +3,7 @@ import json
 import os
 import tempfile
 import shutil
-from app.services.config_manager import ConfigManager
+from app.recognizers.config_manager import ConfigManager
 
 
 class TestConfigManager(unittest.TestCase):

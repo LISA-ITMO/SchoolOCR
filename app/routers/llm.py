@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from pdf2image import convert_from_bytes
 from PIL import Image
 
-from app.services.config_manager import config_manager
+from app.recognizers.config_manager import config_manager
 from app.ollama_interaction.send_custom import send_image_to_llm
 from app.ollama_interaction.get_api_keys import get_llm_api_key
 

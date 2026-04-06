@@ -2,7 +2,7 @@ import os
 import json
 import unittest
 from PIL import Image
-from app.services.recognizer import DocumentRecognizer
+from app.recognizers.recognizer import DocumentRecognizer
 
 
 class TestRecognizer(unittest.TestCase):
