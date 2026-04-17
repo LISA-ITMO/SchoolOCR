@@ -16,12 +16,12 @@ REST API для автоматического распознавания тит
 ## Быстрый старт (Docker)
 
 ```bash
-git clone https://github.com/LISA-ITMO/SchoolOCR
+git clone -b master-lite https://github.com/LISA-ITMO/SchoolOCR
 cd SchoolOCR
 docker compose up --build -d
 ```
 
-Сервис поднимается на порту `8000`. Swagger-документация: `http://localhost:8000/docs`.
+Сервис поднимается на порту `8000`.
 
 ### Опциональный Ollama (для LLM-распознавания)
 
@@ -46,7 +46,7 @@ brew install tesseract tesseract-lang
 ```
 
 ```bash
-git clone https://github.com/LISA-ITMO/SchoolOCR
+git clone -b master-lite https://github.com/LISA-ITMO/SchoolOCR
 cd SchoolOCR
 
 python -m venv venv
