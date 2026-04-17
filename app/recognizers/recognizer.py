@@ -10,14 +10,13 @@ from app.recognizers.config_manager import config_manager
 
 
 class DocumentRecognizer:
-    def __init__(self, debug: bool = False, enable_logging: bool = False):
+    def __init__(self, debug: bool = False):
         self.config_manager = config_manager
         self.model = get_extended_model()
         self.header_recognizer = HeaderRecognizer(self.config_manager)
         self.code_recognizer = CodeRecognizer(self.model, self.config_manager)
         self.table_recognizer = TableRecognizer(
             debug=debug,
-            enable_logging=enable_logging,
             config_manager_instance=self.config_manager,
         )
 

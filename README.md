@@ -1,313 +1,243 @@
 # SchoolOCR
 
-[![Python 3.11.7](https://img.shields.io/badge/Python-3.11.7-blue?logo=python)](https://www.python.org/)
-[![OpenCV 4.11.0](https://img.shields.io/badge/OpenCV-4.11.0-blue)](https://opencv.org/)
-[![TensorFlow 2.19.0](https://img.shields.io/badge/TensorFlow-2.19.0-orange?logo=tensorflow)](https://www.tensorflow.org/)
-[![Ultralytics 8.3.105](https://img.shields.io/badge/Ultralytics-8.3.105-red)](https://ultralytics.com/)
-[![FastAPI 0.115.12](https://img.shields.io/badge/FastAPI-0.115.12-green?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![License MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE.md)
-[![Docker Ready](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://hub.docker.com/)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.19-orange?logo=tensorflow)](https://www.tensorflow.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 
-## Описание
+REST API для автоматического распознавания титульных листов ВПР: предмет, класс, вариант, код участника, баллы по заданиям.
 
-**SchoolOCR** - API для автоматического распознавания данных с титульных листов Всероссийских Проверочных Работ (ВПР) с использованием нейросетевых технологий. Решение позволяет:
+Поддерживаемые форматы входных файлов: **JPEG, PNG, PDF**.
 
-- Автоматизировать обработку бланков
-- Снизить нагрузку на преподавателей
-- Минимизировать ошибки ручного ввода
-
-Пример титульной страницы:  
 ![Пример бланка](https://github.com/user-attachments/assets/37c95311-d113-4e8f-acbf-c6ce7ed68a10)
 
-## Ключевые особенности
+---
 
-- **Распознавание структурированных данных**:
-  - Предмет, класс, вариант
-  - Код участника
-  - Баллы по заданиям
-- **Поддержка форматов**:
-  - Изображения (JPG/PNG)
-  - PDF-документы
-- **Технологический стек**:
-  - YOLOv11 для детекции ячеек
-  - Кастомная CNN для распознавания цифр
-  - Tesseract OCR для распознавания печатного текста
-- **API**:
-  - RESTful интерфейс
-  - Поддержка base64-кодирования
-  - Авторизация по API-ключу
-- **Экспериментальное LLM-распознавание**:
-  - Отдельная ручка `/llm/recognize`
-  - Использование мультимодальной модели через Ollama Cloud
-  - Полноценный альтернативный контур распознавания документа
-  - Предназначено для замены классического пайплайна в отдельных сценариях
-  - Имеет экспериментальный статус, так как находится на этапе активной настройки и проверки
-
-## 🌐 Публичный доступ к API
-
-Сервис доступен по публичному IP-адресу:
-
-```
-http://89.169.138.153/recognize
-```
-
-## Экспериментальная ручка LLM-распознавания
-
-Помимо основного пайплайна распознавания в сервисе доступна **экспериментальная** ручка:
-
-```http
-POST /llm/recognize
-```
-
-### Назначение
-
-Данная функция представляет собой **полноценный альтернативный способ распознавания документа** с использованием мультимодальной языковой модели.
-
-Ручка предназначена для:
-
-- распознавания титульного листа целиком одним запросом;
-- замены классического пайплайна в отдельных сценариях использования;
-- обработки документов со сложными, нестандартными или плохо читаемыми фрагментами;
-- апробации нового подхода к извлечению структурированных данных.
-
-### Важное замечание
-
-Ручка `/llm/recognize` имеет **экспериментальный статус**.  
-Это означает, что:
-
-- функция рассматривается как новый полноценный контур распознавания, а не только вспомогательный инструмент;
-- логика промпта, состав ответа и параметры обработки могут дорабатываться;
-- качество распознавания и время ответа зависят от выбранной облачной модели;
-- перед использованием в массовой эксплуатации рекомендуется отдельно проверить качество на своем наборе документов.
-
-## API-ключ для Ollama Cloud
-
-Для работы экспериментальной ручки `/llm/recognize` требуется отдельный API-ключ для доступа к облачной модели Ollama.
-
-### Как получить API-ключ
-
-1. Зарегистрируйтесь или войдите в аккаунт Ollama.
-2. Перейдите в настройки или раздел управления API-ключами в личном кабинете.
-3. Создайте новый API key.
-4. Сохраните его в безопасном месте, так как после создания он может больше не отображаться полностью.
-
-### Как используется ключ
-
-В текущей реализации ключ Ollama Cloud передается в теле запроса в поле `api_key` при вызове ручки `/llm/recognize`.
-
-Пример:
-
-```bash
-curl -X POST http://localhost:8000/llm/recognize \
-  -F "file=@doc.pdf" \
-  -F "api_key=YOUR_OLLAMA_API_KEY" \
-  -F "model=qwen3-vl:235b-cloud"
-```
-
-### Важно
-
-API-ключ Ollama Cloud и API-ключ самого SchoolOCR — это **разные ключи**:
-
-- API-ключ SchoolOCR используется для авторизации в самом сервисе;
-- API-ключ Ollama Cloud используется только для доступа к облачной LLM-модели.
-
-## Запуск с помощью docker-compose
-
-1. Запуск для разработки производится с помощью команды:
-
-```
-docker-compose --profile dev up -d --build
-```
-
-Фронтенд приложения запускается на порту 5173, поддерживает HMR.
-
-2. Продовый запуск производится с помощью команды:
-
-```
-docker-compose --profile prod up -d --build
-```
-
-Разница с версией для разработки в том, что статика фронтенда продовой версии раздается с помощью nginx.
-
-## Установка
-
-1. Клонируйте репозиторий:
+## Быстрый старт (Docker)
 
 ```bash
 git clone https://github.com/LISA-ITMO/SchoolOCR
 cd SchoolOCR
+docker compose up --build -d
 ```
 
-2. Создайте и активируйте виртуальное окружение:
+Сервис поднимается на порту `8000`. Swagger-документация: `http://localhost:8000/docs`.
+
+### Опциональный Ollama (для LLM-распознавания)
+
+Для использования `/llm/recognize` с локальной моделью нужен GPU с поддержкой NVIDIA Container Toolkit:
 
 ```bash
-# Для Windows
+docker compose --profile ollama up --build -d
+```
+
+---
+
+## Локальная установка
+
+**Требования:** Python 3.11, Tesseract OCR с русским языком.
+
+```bash
+# Tesseract (Ubuntu/Debian)
+apt install tesseract-ocr tesseract-ocr-rus
+
+# Tesseract (macOS)
+brew install tesseract tesseract-lang
+```
+
+```bash
+git clone https://github.com/LISA-ITMO/SchoolOCR
+cd SchoolOCR
+
 python -m venv venv
-venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Для Linux/macOS
-python3 -m venv venv
-source venv/bin/activate
-```
-
-3. Установите зависимости:
-
-```bash
 pip install -r requirements.txt
+
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-4. Запустите API
+---
 
-```bash
-python ./app.py
+## Авторизация
+
+Все эндпоинты защищены API-ключом, передаётся в заголовке:
+
+```
+X-API-Key: <ключ>
 ```
 
-5. Можете сделать тестовый запрос
-
-```bash
-python ./scripts/app_interaction/sender.py
-```
-
-## Установка с помощью Docker
-
-1. Клонируйте репозиторий:
-
-```bash
-git clone https://github.com/LISA-ITMO/SchoolOCR
-cd SchoolOCR
-```
-
-2. Поднимите контейнер
-
-```bash
-docker-compose up --build
-```
-
-3. Можете сделать тестовый запрос
-
-```bash
-python ./scripts/app_interaction/sender.py
-```
-
-## Авторизация API
-
-Все эндпоинты защищены API-ключом. Ключ передаётся в заголовке `X-API-Key`.
-
-При отсутствии или неверном ключе сервер возвращает `401 Unauthorized`.
-
-### Управление ключами
-
-Ключи хранятся в файле `app/api_keys.json`:
+Ключи хранятся в `app/api_keys.json`. Файл читается при старте — после изменения нужен перезапуск.
 
 ```json
 {
-    "keys": ["ваш_уникальный_ключ_1", "ваш_уникальный_ключ_2"]
+  "keys": ["ваш_ключ_1", "ваш_ключ_2"]
 }
 ```
 
-Файл читается при старте приложения. После изменения необходима перезагрузка сервиса.
+---
 
-### Примеры запросов
+## API
 
-**curl:**
+### `POST /recognize`
+
+Основное распознавание. Принимает файл, возвращает массив результатов (по одному элементу на страницу).
+
+**Запрос:**
 
 ```bash
-curl -X POST "http://localhost:8000/recognize" \
+curl -X POST http://localhost:8000/recognize \
   -H "X-API-Key: ваш_ключ" \
-  -F "file=@image.jpg"
+  -F "file=@bланк.jpg"
 ```
-
-**Python:**
 
 ```python
 import requests
 
-response = requests.post(
+resp = requests.post(
     "http://localhost:8000/recognize",
     headers={"X-API-Key": "ваш_ключ"},
-    files={"file": open("image.jpg", "rb")},
+    files={"file": open("бланк.jpg", "rb")},
 )
-print(response.json())
+print(resp.json())
 ```
 
-## Краткая документация
+**Ответ:**
 
-### Основные модули
-
-- `app.py`  
-  Точка входа FastAPI с эндпоинтами:
-
-  `/recognize` - Основной обработчик изображений  
-  `/llm/recognize` - Экспериментальная LLM-ручка для полного распознавания документа через мультимодальную модель  
-   `/healthcheck` - Проверка состояния сервиса
-
-- `utils/code_rec.py`
-
-```python
-def recognize_code(image: np.ndarray, model) -> str:
-    """Извлекает код участника из изображения"""
+```json
+[
+  {
+    "id": "uuid",
+    "subject": "Математика",
+    "grade": "5",
+    "variant": "1",
+    "participant_code": "00123",
+    "total_score": 14,
+    "scores": {
+      "1": [3, 0.98],
+      "2": [2, 0.91],
+      "3": ["x", 0.87]
+    },
+    "scores_details": {
+      "1": {"0": 0.01, "1": 0.0, "2": 0.0, "3": 0.98, ...}
+    },
+    "errors": null,
+    "warnings": ["Низкая уверенность в заданиях: 5, 7"]
+  }
+]
 ```
 
-- `utils/table_rec.py`
+Поле `scores`: `{ "номер_задания": [значение, вероятность] }`.  
+Значение — целое число `0–9`, либо `"-"` или `"x"` (специальные символы).
 
-```python
-def recognize_table(image: np.ndarray, model) -> dict:
-    """Обрабатывает таблицу с ответами и возвращает баллы"""
+---
+
+### `POST /llm/recognize`
+
+Экспериментальное распознавание через мультимодальную LLM (Ollama Cloud). Обрабатывает документ целиком одним запросом.
+
+**Параметры формы:**
+
+| Поле      | Тип    | Обязательный | Описание                                              |
+|-----------|--------|:------------:|-------------------------------------------------------|
+| `file`    | file   | да           | PDF или изображение                                   |
+| `api_key` | string | да*          | API-ключ Ollama Cloud (`*` или в `config/api_keys.json`) |
+| `model`   | string | нет          | Модель Ollama, по умолчанию `qwen3-vl:235b`           |
+| `prompt`  | string | нет          | Кастомный промпт (по умолчанию берётся из конфига)    |
+
+**Запрос:**
+
+```bash
+curl -X POST http://localhost:8000/llm/recognize \
+  -H "X-API-Key: ваш_ключ" \
+  -F "file=@бланк.pdf" \
+  -F "api_key=ваш_ollama_cloud_ключ"
 ```
 
-- `utils/preprocess_general.py`
+**Ответ** — JSON той же структуры, что и `/recognize`, но `scores` без вероятностей:
 
-```python
-  def preprocess_general(img):
-    """Предобработка изображения перед распознаванием"""
+```json
+{
+  "subject": "Русский язык",
+  "grade": "7",
+  "variant": "2",
+  "participant_code": "00456",
+  "total_score": 18,
+  "scores": {"1": 3, "2": 2, "3": "X"},
+  "errors": null,
+  "warnings": null
+}
 ```
 
-### Модели
+> **Важно:** API-ключ Ollama Cloud и API-ключ SchoolOCR — разные ключи. Ключ Ollama получается в личном кабинете [ollama.com](https://ollama.com).
 
-| Модель  | Назначение         | Путь                    |
-| ------- | ------------------ | ----------------------- |
-| YOLOv11 | Детекция ячеек     | `models/cell_detect.pt` |
-| CNN     | Распознавание цифр | `models/digit_model.h5` |
+---
 
-## Основные зависимости
+## Конфигурация
 
-### Ключевые фреймворки
+### `app/recognizers/config_new.json`
 
-| Библиотека    | Версия   | Назначение             |
-| ------------- | -------- | ---------------------- |
-| `fastapi`     | 0.115.12 | Веб-фреймворк для API  |
-| `uvicorn`     | 0.34.0   | ASGI-сервер            |
-| `tensorflow`  | 2.19.0   | Нейросетевой фреймворк |
-| `ultralytics` | 8.3.105  | YOLO модели            |
+Настройки алгоритма распознавания:
 
-### Обработка изображений
+```json
+{
+  "default": {
+    "recognition": {
+      "use_llm": false,
+      "confidence_threshold": 0.6,
+      "llm_trigger_threshold": 0.6
+    },
+    "llm": {
+      "api_url": "https://ollama.com/api/chat",
+      "model": "qwen3-vl:235b"
+    }
+  }
+}
+```
 
-| Библиотека      | Версия |
-| --------------- | ------ |
-| `opencv-python` | 4.11.0 |
-| `pillow`        | 11.1.0 |
-| `pytesseract`   | 0.3.13 |
-| `scikit-image`  | 0.25.2 |
+| Параметр               | Описание                                                    |
+|------------------------|-------------------------------------------------------------|
+| `use_llm`              | Использовать LLM как fallback при низкой уверенности CNN   |
+| `confidence_threshold` | Порог уверенности, ниже которого задание помечается в `warnings` |
+| `llm_trigger_threshold`| Порог уверенности CNN, ниже которого вызывается LLM        |
 
-### Дополнительные
+---
 
-| Библиотека | Назначение         |
-| ---------- | ------------------ |
-| `PyMuPDF`  | Работа с PDF       |
-| `pydantic` | Валидация данных   |
-| `numpy`    | Матричные операции |
+## Требования к качеству скана
 
-[Полный список зависимостей →](requirements.txt)
+- Ровный скан без перекосов, чёткий
+- Цифры — раздельно, чёрной ручкой, в пределах клетки
+- Каждая цифра в таблице — в отдельной клетке с чёткими границами
+- Рекомендуемое разрешение: 300 DPI
 
-## Требования к скану
+---
 
-В настоящий момент решение крайне чувствительно к исходному качеству, поэтому для наиболее корректной обработки важно соблюдать требования:
+## Структура проекта
 
-- Скан, насколько это возможно, сделать ровным и четким;
-- Цифры пишутся раздельно, черной (лучше гелиевой) ручкой, без разъединений - в идеале, как печатные. Для таблиц - ровно в клетке, не выходя за рамки;
-- Для каждой цифры в таблице - отдельная клетка, границы должны быть как можно четче.
-- Передавать API файл в jpg или pdf формате через base64, разрешение исходное
+```
+app/
+├── main.py                   # Точка входа FastAPI
+├── api_keys.json             # API-ключи сервиса
+├── routers/
+│   ├── recognize.py          # POST /recognize
+│   └── llm.py                # POST /llm/recognize
+├── recognizers/
+│   ├── recognizer.py         # Оркестратор распознавания
+│   ├── header_recognizer.py  # Tesseract: предмет, класс, вариант
+│   ├── code_recognizer.py    # CNN: код участника
+│   ├── table_recognizer.py   # YOLO + CNN: таблица баллов
+│   ├── cell_recognizer.py    # CNN распознавание ячейки
+│   └── config_manager.py     # Управление конфигурацией
+├── ml/
+│   └── loader.py             # Ленивая загрузка моделей
+└── weights/
+    ├── best_model_balanced.h5 # CNN модель (цифры)
+    ├── cell_detect.pt         # YOLO модель (детекция ячеек)
+    └── cell_detect_extra.pt   # YOLO fallback модель
+```
 
-## Конференции
+---
+
+## Публикации
 
 [Тезис КМУ](https://kmu.itmo.ru/digests/article/15643)

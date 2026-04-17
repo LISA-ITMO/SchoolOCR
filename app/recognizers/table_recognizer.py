@@ -10,7 +10,6 @@ class TableRecognizer:
     def __init__(
         self,
         debug: bool = False,
-        enable_logging: bool = False,
         config_manager_instance: Optional[ConfigManager] = None,
     ):
         self.config_manager = config_manager_instance or config_manager
@@ -22,7 +21,6 @@ class TableRecognizer:
         self.confidence_threshold = confidence_threshold
         self.cell_recognizer = CellRecognizer(
             debug=debug,
-            enable_logging=enable_logging,
             config_manager_instance=self.config_manager,
         )
 

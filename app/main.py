@@ -1,8 +1,5 @@
 import json
 import os
-import multiprocessing as mp
-from contextlib import asynccontextmanager
-from concurrent.futures import ProcessPoolExecutor
 
 from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +8,6 @@ from fastapi.security import APIKeyHeader
 from app.config import app_version
 from app.routers import recognize, llm
 
-
-mp.set_start_method("spawn", force=True)
 
 _api_keys_path = os.path.join(os.path.dirname(__file__), "api_keys.json")
 with open(_api_keys_path) as _f:
@@ -26,21 +21,9 @@ def verify_api_key(key: str = Security(_api_key_header)):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.state.executor = ProcessPoolExecutor(max_workers=6)
-    try:
-        yield
-    finally:
-        ex = getattr(app.state, "executor", None)
-        if ex:
-            ex.shutdown(wait=False, cancel_futures=True)
-
-
 app = FastAPI(
     title="VPR Recognition API",
     version=app_version,
-    lifespan=lifespan,
     dependencies=[Depends(verify_api_key)],
 )
 

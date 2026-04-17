@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from app.preprocessing.cell_digit import preprocess_cell_image
 from app.ml.loader import get_extended_model
 from app.ollama_interaction.recognize_digit import classify_image_api
-from app.recognizers.recognize_logger import RecognizeLogger
 from app.recognizers.config_manager import ConfigManager, config_manager
 
 
@@ -26,21 +25,15 @@ class CellRecognizer:
     def __init__(
         self,
         debug: bool = False,
-        enable_logging: bool = False,
         config_manager_instance: Optional[ConfigManager] = None,
     ):
         self.model = get_extended_model()
         self.debug = debug
-        self.enable_logging = enable_logging
 
         self.config_manager = config_manager_instance or config_manager
         recog_cfg = self.config_manager.get_recognition_config()
         self.use_llm = bool(recog_cfg["use_llm"])
         self.llm_trigger_threshold = float(recog_cfg["llm_trigger_threshold"])
-
-        self._recognize_logger: Optional[RecognizeLogger] = (
-            RecognizeLogger() if self.enable_logging else None
-        )
 
         self.cell_images = []
         self.processed_images = []
@@ -52,35 +45,16 @@ class CellRecognizer:
         result = CellResult(task_name=task_name)
 
         if cell_img.size == 0:
-            print(f"Ячейка {task_name}: пустая область, пропуск.")
             return result
 
         input_data, processed_img = preprocess_cell_image(cell_img)
         if input_data is None:
-            print(f"Ячейка {task_name}: не удалось обработать изображение.")
             return result
 
         pred = self.model.predict(input_data)
         model_digit = int(np.argmax(pred))
         model_prob = float(np.max(pred))
         prob_all = {str(i): round(float(p), 2) for i, p in enumerate(pred.reshape(-1))}
-
-        full_detail = {
-            str(i): round(float(p), 100) for i, p in enumerate(pred.reshape(-1))
-        }
-
-        if self.enable_logging and self._recognize_logger is not None:
-            try:
-                self._recognize_logger.log(
-                    initial_image=cell_img,
-                    preprocessed_image=processed_img,
-                    recognation_result=model_digit,
-                    recognation_accuracy=model_prob * 100,
-                    recognation_detail=full_detail,
-                )
-            except Exception as e:
-                print("Ошибка логирования:", e)
-        # --- конец блока ---
 
         result.digit = model_digit
         result.prob = model_prob
@@ -97,25 +71,16 @@ class CellRecognizer:
                         result.llm_digit = llm_result
 
                         llm_to_digit = {
-                            "0": 0,
-                            "1": 1,
-                            "2": 2,
-                            "3": 3,
-                            "4": 4,
-                            "5": 5,
-                            "6": 6,
-                            "7": 7,
-                            "8": 8,
-                            "9": 9,
-                            "x": 11,
-                            "X": 11,
+                            "0": 0, "1": 1, "2": 2, "3": 3, "4": 4,
+                            "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
+                            "x": 11, "X": 11,
                         }
 
                         if llm_result in llm_to_digit:
                             result.digit = llm_to_digit[llm_result]
                             result.prob = 0.7
-            except Exception as e:
-                print(f"Ошибка LLM для ячейки {task_name}: {e}")
+            except Exception:
+                pass
 
         if self.debug:
             self.cell_images.append(cell_img)
@@ -141,7 +106,6 @@ class CellRecognizer:
         fig = plt.figure(figsize=(4 * num_cells, 12))
 
         for i in range(num_cells):
-            # Оригинальное изображение
             plt.subplot(3, num_cells, i + 1)
             if len(self.cell_images[i].shape) == 2:
                 plt.imshow(self.cell_images[i], cmap="gray")
@@ -150,7 +114,6 @@ class CellRecognizer:
             plt.title(f"Original {self.tasks[i]}")
             plt.axis("off")
 
-            # Предобработанное изображение
             plt.subplot(3, num_cells, num_cells + i + 1)
             plt.imshow(self.processed_images[i], cmap="gray")
 
@@ -164,10 +127,9 @@ class CellRecognizer:
             )
             plt.axis("off")
 
-            # Вероятности всех классов
             plt.subplot(3, num_cells, 2 * num_cells + i + 1)
             classes = list(range(12))
-            plt.bar(classes, [0.1] * 12)  # Заглушка
+            plt.bar(classes, [0.1] * 12)
             plt.title(f"Probabilities {self.tasks[i]}")
             plt.xlabel("Digit")
             plt.ylabel("Probability")
@@ -177,7 +139,6 @@ class CellRecognizer:
         plt.show()
 
     def reset_debug_data(self):
-        """Очищает debug данные"""
         self.cell_images.clear()
         self.processed_images.clear()
         self.digits.clear()
