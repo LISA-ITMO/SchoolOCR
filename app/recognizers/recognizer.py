@@ -41,6 +41,9 @@ class DocumentRecognizer:
             code = self.code_recognizer.recognize(image)
             if not code:
                 errors.append("Не удалось распознать код участника")
+            else:
+                if len(code) != 5 or not code.isdigit() or variant and code[0] != variant:
+                    errors.append(f"Некорректно распознан код участника")
 
             task_dict, task_dict_prob_details, total_score, low_confidence = (
                 self.table_recognizer.recognize_scores_table(image)
