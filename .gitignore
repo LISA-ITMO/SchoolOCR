@@ -199,3 +199,4 @@ api_keys.json
 .DS_Store
 /scripts/app_interaction/organized_cells_new/
 /scripts/app_interaction/data/dataset/
+/scripts/app_interaction/recognition_stats_output/
